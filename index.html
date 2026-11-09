@@ -634,7 +634,7 @@ async function maxiLoadStorefrontContent(){
   }
   if(!cr.error&&cr.data?.length){
    const grid=document.querySelector(".category-grid");
-   if(grid)grid.innerHTML=cr.data.map(cat=>'<div class="category" role="button" tabindex="0" onclick="filterCategory(\\''+String(cat.name).replace(/'/g,"\\\\'")+'\\')"><img src="'+String(cat.image_url||"").replace(/"/g,"%22")+'" alt="'+maxiEsc(cat.name)+'"><span>'+maxiEsc(cat.name)+'</span></div>').join("");
+   if(grid){grid.innerHTML=cr.data.map(cat=>'<div class="category" role="button" tabindex="0" data-category="'+maxiEsc(cat.name)+'"><img src="'+String(cat.image_url||"").replace(/"/g,"%22")+'" alt="'+maxiEsc(cat.name)+'"><span>'+maxiEsc(cat.name)+'</span></div>').join("");grid.querySelectorAll("[data-category]").forEach(el=>el.addEventListener("click",()=>filterCategory(el.dataset.category)))}
   }
  }catch(e){console.warn("Storefront merchandising uses the existing homepage settings:",e)}
 }
