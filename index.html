@@ -29,7 +29,7 @@
 <header class="header">
 <a class="brand" href="#"><span class="monogram">MM</span><span class="brandname">MAXIMOS<small>MODERN MENSWEAR</small></span></a>
 <nav class="nav"><a href="#home">HOME</a><a href="#shop">SHOP</a><a href="#categories">CATEGORIES</a></nav>
-<div class="head-actions"><button type="button" class="admin-open" onclick="openAdmin()">ADMIN</button><button class="icon-btn" aria-label="Search" onclick="document.getElementById('shop').scrollIntoView()">⌕</button><button class="icon-btn" aria-label="Cart" onclick="openCart()">♧<span class="count" id="cartCount">0</span></button></div>
+<div class="head-actions"><button type="button" class="admin-open" onclick="window.openAdmin()">ADMIN</button><button class="icon-btn" aria-label="Search" onclick="document.getElementById('shop').scrollIntoView()">⌕</button><button class="icon-btn" aria-label="Cart" onclick="openCart()">♧<span class="count" id="cartCount">0</span></button></div>
 </header>
 <main>
 <section class="hero" id="home"><div class="hero-copy"><span class="eyebrow" id="heroEyebrow">THE NEW STANDARD OF STYLE</span><h1 id="heroTitle">MAXIMIZE<br>YOUR STYLE.</h1><p id="heroDescription">Considered essentials. Elevated everyday pieces. Discover a wardrobe designed for confidence, comfort, and effortless distinction.</p><a class="btn" id="heroButton" href="#shop">SHOP NEW COLLECTION <span>→</span></a></div><div class="hero-image" id="heroImage" role="img" aria-label="Menswear editorial model"></div></section>
@@ -243,6 +243,18 @@ async function openAdmin(){
     alert("لوحة الإدارة اتفتحت، لكن حصل خطأ أثناء فحص تسجيل الدخول: "+(e?.message||e)+"\nتأكد من الإنترنت وإعداد جداول Supabase.");
   }
 }
+// Explicitly expose the admin opener for mobile browsers and inline handlers.
+window.openAdmin = openAdmin;
+window.addEventListener("DOMContentLoaded",()=>{
+  const adminButton=document.querySelector(".admin-open");
+  if(adminButton){
+    adminButton.type="button";
+    adminButton.addEventListener("click",(event)=>{
+      event.preventDefault();
+      window.openAdmin();
+    });
+  }
+});
 function closeAdmin(){
   document.getElementById("adminShell").classList.remove("show");
   document.body.style.overflow="";
