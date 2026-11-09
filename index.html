@@ -447,4 +447,173 @@ async function saveMaximosCategories(e){
 }
 </script>
 
+
+
+<style>
+/* MaxiMos full operations workspace */
+.maxi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.maxi-card{background:#fff;border:1px solid #e8e4dc;padding:17px;margin:10px 0}
+.maxi-card h3{font:600 18px "Playfair Display";margin:0 0 12px}
+.maxi-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.maxi-form label{font-size:10px;color:#777;display:flex;flex-direction:column;gap:5px}
+.maxi-form input,.maxi-form textarea,.maxi-form select{border:1px solid #ddd8ce;background:#fff;padding:11px;font:12px "DM Sans",sans-serif;min-width:0;width:100%;color:#292b27}
+.maxi-form .wide{grid-column:1/-1}
+.maxi-table-wrap{overflow:auto;background:#fff;border:1px solid #e8e4dc;margin:15px 0}
+.maxi-table{border-collapse:collapse;width:100%;min-width:650px}
+.maxi-table th,.maxi-table td{padding:11px;border-bottom:1px solid #eeeae3;text-align:left;font-size:11px;vertical-align:middle}
+.maxi-table th{font-size:9px;color:#85847b;letter-spacing:1px}
+.maxi-pill{display:inline-block;padding:5px 8px;background:#efede6;font-size:9px}
+.maxi-row-actions{display:flex;gap:5px;flex-wrap:wrap}
+.maxi-secondary{background:#eeebe4;color:#3f4338;padding:9px 11px;font-size:10px}
+.maxi-warning{color:#8a4038}
+.maxi-muted{font-size:11px;color:#85847b}
+.maxi-modal{position:fixed;inset:0;background:#20231dcc;z-index:150;display:none;align-items:center;justify-content:center;padding:15px}
+.maxi-modal.show{display:flex}
+.maxi-modal-inner{background:#fff;width:min(680px,100%);max-height:90vh;overflow:auto;padding:24px}
+.maxi-perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.maxi-perm-grid label{display:flex;align-items:center;gap:7px;font-size:11px;background:#f4f1e9;padding:9px}
+@media(max-width:700px){.maxi-grid{grid-template-columns:1fr 1fr}.maxi-form{grid-template-columns:1fr}.maxi-form .wide{grid-column:auto}.maxi-perm-grid{grid-template-columns:1fr}.maxi-modal-inner{padding:16px}}
+</style>
+<div class="maxi-modal" id="maxiRecordModal"><div class="maxi-modal-inner"><div style="display:flex;justify-content:space-between;align-items:center"><h2 id="maxiModalTitle" class="admin-title">Details</h2><button class="close" onclick="maxiCloseModal()">×</button></div><div id="maxiModalBody"></div></div></div>
+
+<script>
+/* MaxiMos operations modules — additive UI over the existing Supabase project. */
+const maxiBaseRenderAdmin = window.renderAdmin;
+const maxiPermissions = [
+  ["orders.read","عرض الطلبات"],["orders.manage","إدارة الطلبات"],
+  ["returns.manage","المرتجعات والاسترداد"],["products.manage","إدارة المنتجات والتكلفة"],
+  ["store.manage","محتوى المتجر والعروض"],["shipping.manage","الشحن"],
+  ["payments.manage","طرق الدفع"],["reports.profit","تقارير الأرباح"],
+  ["staff.manage","إدارة الموظفين"],["audit.read","سجل العمليات"]
+];
+function maxiEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function maxiTabButtons(){
+ const side=document.querySelector(".admin-side");if(!side)return;
+ const tabs=[["store","▧ Store Builder"],["shipping","♧ Shipping"],["payments","＄ Payments"],["returns","↩ Returns"],["reports","▥ Profit Reports"],["team","♙ Team & Roles"]];
+ for(const [key,label] of tabs){if(!side.querySelector('[data-tab="'+key+'"]')){const b=document.createElement("button");b.className="admin-tab";b.dataset.tab=key;b.textContent=label;b.onclick=()=>showAdminTab(key);side.appendChild(b)}}
+}
+function maxiOpenModal(title,html){document.getElementById("maxiModalTitle").textContent=title;document.getElementById("maxiModalBody").innerHTML=html;document.getElementById("maxiRecordModal").classList.add("show")}
+function maxiCloseModal(){document.getElementById("maxiRecordModal").classList.remove("show")}
+async function maxiRows(table,order="id"){const r=await supabaseClient.from(table).select("*").order(order,{ascending:false});if(r.error)throw r.error;return r.data||[]}
+function maxiTable(headers,rows){return '<div class="maxi-table-wrap"><table class="maxi-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join("")+'</tr></thead><tbody>'+rows+'</tbody></table></div>'}
+function maxiActions(items){return '<div class="maxi-row-actions">'+items.join("")+'</div>'}
+function maxiButton(label,fn,cls="maxi-secondary"){return '<button type="button" class="'+cls+'" onclick="'+fn+'">'+label+'</button>'}
+function maxiError(e){alert("تعذر تنفيذ العملية: "+(e?.message||String(e)))}
+async function maxiLoadPage(tab){
+ const root=document.getElementById("adminContent");
+ root.innerHTML='<p class="admin-muted">جاري تحميل البيانات...</p>';
+ try{
+  if(tab==="orders"){await maxiRenderOrders(root);return}
+  if(tab==="customers"){await maxiRenderCustomers(root);return}
+  if(tab==="store"){await maxiRenderStore(root);return}
+  if(tab==="shipping"){await maxiRenderShipping(root);return}
+  if(tab==="payments"){await maxiRenderPayments(root);return}
+  if(tab==="returns"){await maxiRenderReturns(root);return}
+  if(tab==="reports"){await maxiRenderReports(root);return}
+  if(tab==="team"){await maxiRenderTeam(root);return}
+ }catch(e){root.innerHTML='<h1 class="admin-title">حصل خطأ</h1><p class="admin-muted">'+maxiEsc(e.message||e)+'</p>';console.error(e)}
+}
+window.renderAdmin=function(tab){
+ maxiTabButtons();
+ document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+ if(["orders","customers","store","shipping","payments","returns","reports","team"].includes(tab)){maxiLoadPage(tab);return}
+ if(typeof maxiBaseRenderAdmin==="function")maxiBaseRenderAdmin(tab);
+};
+
+async function maxiRenderOrders(root){
+ const rows=await maxiRows("orders","created_at");
+ const statusFilter=document.getElementById("maxiOrderFilter")?.value||"All";
+ root.innerHTML='<span class="eyebrow">ORDER OPERATIONS</span><h1 class="admin-title">إدارة الطلبات</h1><p class="admin-muted">متابعة الحالة، بيانات العميل، الفواتير والإلغاء.</p><div class="admin-toolbar"><input id="maxiOrderSearch" class="admin-search" placeholder="ابحث برقم الطلب أو الاسم أو الهاتف..." oninput="maxiFilterOrderRows()"><select id="maxiOrderFilter" onchange="maxiFilterOrderRows()"><option>All</option>'+["New","Confirmed","Preparing","Shipped","Delivered","Cancelled"].map(s=>'<option>'+s+'</option>').join("")+'</select><button class="admin-secondary" onclick="exportOrders()">تصدير CSV</button></div>'+maxiTable(["الطلب","العميل","التاريخ","الإجمالي","الدفع","الحالة","الإجراءات"],rows.map(o=>'<tr data-maxi-order data-status="'+maxiEsc(o.status)+'" data-search="'+maxiEsc([o.id,o.customer?.name,o.customer?.phone].join(" ").toLowerCase())+'"><td>#'+o.id+'</td><td>'+maxiEsc(o.customer?.name)+'<br><small>'+maxiEsc(o.customer?.phone)+'</small></td><td>'+maxiEsc(maximosDate(o.created_at))+'</td><td>'+maximosMoney(o.total)+'</td><td>'+maxiEsc(o.payment_method||"Cash on delivery")+'<br><small>'+maxiEsc(o.payment_status||"pending")+'</small></td><td><select onchange="maxiChangeOrderStatus('+o.id+',this.value)">'+["New","Confirmed","Preparing","Shipped","Delivered","Cancelled"].map(s=>'<option '+(o.status===s?"selected":"")+'>'+s+'</option>').join("")+'</select></td><td>'+maxiActions([maxiButton("تفاصيل","maxiOrderDetails("+o.id+")"),maxiButton("فاتورة","maxiInvoice("+o.id+")"),maxiButton("مرتجع","maxiCreateReturn("+o.id+")")])+'</td></tr>').join("")||'<tr><td colspan="7">لا توجد طلبات حتى الآن.</td></tr>');
+}
+function maxiFilterOrderRows(){const q=(document.getElementById("maxiOrderSearch")?.value||"").toLowerCase(),s=document.getElementById("maxiOrderFilter")?.value||"All";document.querySelectorAll("[data-maxi-order]").forEach(r=>r.hidden=!(r.dataset.search.includes(q)&&(s==="All"||r.dataset.status===s)))}
+async function maxiChangeOrderStatus(id,status){
+ const order=orders.find(o=>Number(o.id)===Number(id));
+ if(status==="Cancelled"&&!confirm("تأكيد إلغاء الطلب؟ سيتم إعادة المخزون تلقائيًا إذا كان قد تم خصمه.")){maxiLoadPage("orders");return}
+ const {error}=await supabaseClient.rpc("update_maximos_order_status",{p_order_id:Number(id),p_status:status});
+ if(error){maxiError(error);maxiLoadPage("orders");return}
+ if(status==="Cancelled"){const reason=prompt("سبب الإلغاء (اختياري):")||null;await supabaseClient.from("orders").update({cancellation_reason:reason,updated_at:new Date().toISOString()}).eq("id",id)}
+ if(order){order.status=status;order.stock_deducted=status!=="Cancelled"&&order.stock_deducted}
+ await loadAdminData();maxiLoadPage("orders");
+}
+async function maxiOrderDetails(id){
+ const {data:o,error}=await supabaseClient.from("orders").select("*").eq("id",id).single();if(error){maxiError(error);return}
+ const items=(o.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+maxiEsc(i.size||"—")+'</td><td>'+maxiEsc(i.color||"—")+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td></tr>').join("");
+ maxiOpenModal("تفاصيل الطلب #"+id,'<div class="maxi-card"><b>العميل:</b> '+maxiEsc(o.customer?.name)+'<br><b>الهاتف:</b> '+maxiEsc(o.customer?.phone)+'<br><b>العنوان:</b> '+maxiEsc(o.customer?.address)+'<br><b>الحالة:</b> '+maxiEsc(o.status)+'<br><b>الدفع:</b> '+maxiEsc(o.payment_method)+' / '+maxiEsc(o.payment_status)+'</div>'+maxiTable(["المنتج","المقاس","اللون","الكمية","السعر"],items)+'<p><b>الإجمالي: '+maximosMoney(o.total)+'</b></p><p class="maxi-muted">ملاحظات الإلغاء: '+maxiEsc(o.cancellation_reason||"—")+'</p>');
+}
+async function maxiInvoice(id){
+ const {data:o,error}=await supabaseClient.from("orders").select("*").eq("id",id).single();if(error){maxiError(error);return}
+ let inv=await supabaseClient.from("order_invoices").select("*").eq("order_id",id).maybeSingle();
+ if(inv.error){maxiError(inv.error);return}
+ if(!inv.data){
+  const snap={order_id:o.id,customer:o.customer,items:o.items,total:o.total,status:o.status,created_at:o.created_at,shipping_fee:o.shipping_fee||0,discount:o.discount||0,payment_method:o.payment_method||"Cash on delivery"};
+  const {data,error}=await supabaseClient.from("order_invoices").insert({order_id:id,invoice_number:"MM-"+String(id).padStart(6,"0"),snapshot:snap,issued_by:adminUser?.id}).select().single();
+  if(error){maxiError(error);return}inv.data=data;
+ }
+ const s=inv.data.snapshot||{};
+ const rows=(s.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td><td>'+maximosMoney(Number(i.qty||1)*Number(i.price||0))+'</td></tr>').join("");
+ const w=window.open("","_blank");if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
+ w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMOS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script></body></html>');w.document.close();
+}
+async function maxiCreateReturn(id){
+ const reason=prompt("اكتب سبب طلب المرتجع:");if(!reason)return;
+ const {data:o,error}=await supabaseClient.from("orders").select("items").eq("id",id).single();if(error){maxiError(error);return}
+ const {error:insertError}=await supabaseClient.from("order_returns").insert({order_id:id,reason,items:o.items||[]});
+ if(insertError){maxiError(insertError);return}alert("تم تسجيل طلب المرتجع.");maxiLoadPage("returns");
+}
+async function maxiRenderCustomers(root){
+ const rows=await maxiRows("customers","created_at");
+ root.innerHTML='<span class="eyebrow">CUSTOMER RELATIONSHIPS</span><h1 class="admin-title">إدارة العملاء</h1><p class="admin-muted">ملفات العملاء وسجل مشترياتهم والبحث والتصفية.</p><div class="admin-toolbar"><input id="maxiCustomerSearch" class="admin-search" placeholder="الاسم أو الهاتف أو العنوان..." oninput="maxiFilterCustomerRows()"><button class="admin-secondary" onclick="exportCustomers()">تصدير CSV</button></div>'+maxiTable(["العميل","الهاتف","العنوان","آخر طلب","الإجراءات"],rows.map(c=>'<tr data-maxi-customer data-search="'+maxiEsc([c.name,c.phone,c.address].join(" ").toLowerCase())+'"><td>'+maxiEsc(c.name)+'</td><td>'+maxiEsc(c.phone)+'</td><td>'+maxiEsc(c.address)+'</td><td>'+maxiEsc(maximosDate(c.last_order_at||c.created_at))+'</td><td>'+maxiButton("الملف وسجل المشتريات","maxiCustomerDetails("+c.id+")")+'</td></tr>').join("")||'<tr><td colspan="5">لا يوجد عملاء مسجلون.</td></tr>');
+}
+function maxiFilterCustomerRows(){const q=(document.getElementById("maxiCustomerSearch")?.value||"").toLowerCase();document.querySelectorAll("[data-maxi-customer]").forEach(r=>r.hidden=!r.dataset.search.includes(q))}
+async function maxiCustomerDetails(id){
+ const {data:c,error}=await supabaseClient.from("customers").select("*").eq("id",id).single();if(error){maxiError(error);return}
+ const {data:os,error:oe}=await supabaseClient.from("orders").select("*").filter("customer->>phone","eq",c.phone).order("created_at",{ascending:false});if(oe){maxiError(oe);return}
+ const total=(os||[]).reduce((s,o)=>s+Number(o.total||0),0);
+ maxiOpenModal("ملف العميل: "+c.name,'<div class="maxi-grid"><div class="maxi-card"><small>عدد الطلبات</small><h2>'+os.length+'</h2></div><div class="maxi-card"><small>إجمالي المشتريات</small><h2>'+maximosMoney(total)+'</h2></div></div><div class="maxi-card"><b>الهاتف:</b> '+maxiEsc(c.phone)+'<br><b>العنوان:</b> '+maxiEsc(c.address)+'<br><b>البريد:</b> '+maxiEsc(c.email||"—")+'<br><label>ملاحظات<textarea id="maxiCustomerNotes" style="width:100%;padding:10px;margin-top:8px">'+maxiEsc(c.notes||"")+'</textarea></label><button class="admin-primary" onclick="maxiSaveCustomerNotes('+id+')">حفظ الملاحظات</button></div>'+maxiTable(["رقم الطلب","التاريخ","الإجمالي","الحالة"],(os||[]).map(o=>'<tr><td>#'+o.id+'</td><td>'+maxiEsc(maximosDate(o.created_at))+'</td><td>'+maximosMoney(o.total)+'</td><td>'+maxiEsc(o.status)+'</td></tr>').join("")));
+}
+async function maxiSaveCustomerNotes(id){const notes=document.getElementById("maxiCustomerNotes").value;const {error}=await supabaseClient.from("customers").update({notes,updated_at:new Date().toISOString()}).eq("id",id);if(error){maxiError(error);return}alert("تم حفظ ملاحظات العميل.")}
+async function maxiRenderStore(root){
+ const [banners,cats,promos]=await Promise.all([maxiRows("store_banners","sort_order"),maxiRows("store_categories","sort_order"),maxiRows("promo_offers","created_at")]);
+ root.innerHTML='<span class="eyebrow">MERCHANDISING</span><h1 class="admin-title">إدارة واجهة المتجر</h1><p class="admin-muted">بنرات الرئيسية، الأقسام، العروض الترويجية. لا يتم تغيير محتوى الواجهة الحالي تلقائيًا.</p><div class="maxi-card"><h3>إضافة بنر جديد</h3><form class="maxi-form" onsubmit="maxiAddBanner(event)"><label>العنوان<input name="title" required></label><label>مكان العرض<select name="placement"><option value="home_hero">الرئيسية</option><option value="category">قسم</option><option value="promotion">عرض</option></select></label><label class="wide">وصف قصير<input name="subtitle"></label><label class="wide">رابط الصورة<input name="image_url" type="url" required></label><label class="wide">رابط الانتقال<input name="link_url" type="url"></label><button class="admin-primary">إضافة البنر</button></form></div>'+maxiTable(["البنر","المكان","الحالة","الإجراءات"],banners.map(b=>'<tr><td>'+maxiEsc(b.title)+'<br><small>'+maxiEsc(b.image_url)+'</small></td><td>'+maxiEsc(b.placement)+'</td><td>'+(b.active?"نشط":"مخفي")+'</td><td>'+maxiActions([maxiButton(b.active?"إخفاء":"تفعيل","maxiToggleRow('store_banners',"+b.id+","+(!b.active)+")"),maxiButton("حذف","maxiDeleteRow('store_banners',"+b.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("")||'<tr><td colspan="4">لا توجد بنرات مضافة.</td></tr>')+'<div class="maxi-card"><h3>إضافة قسم جديد</h3><form class="maxi-form" onsubmit="maxiAddCategory(event)"><label>اسم القسم<input name="name" required></label><label>Slug بالإنجليزية<input name="slug" required></label><label class="wide">رابط الصورة<input name="image_url" type="url"></label><label class="wide">الوصف<input name="description"></label><button class="admin-primary">إضافة القسم</button></form></div>'+maxiTable(["القسم","Slug","الحالة","الإجراءات"],cats.map(c=>'<tr><td>'+maxiEsc(c.name)+'</td><td>'+maxiEsc(c.slug)+'</td><td>'+(c.active?"نشط":"مخفي")+'</td><td>'+maxiActions([maxiButton(c.active?"إخفاء":"تفعيل","maxiToggleRow('store_categories',"+c.id+","+(!c.active)+")"),maxiButton("حذف","maxiDeleteRow('store_categories',"+c.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("")||'<tr><td colspan="4">لا توجد أقسام مضافة.</td></tr>')+'<div class="maxi-card"><h3>إنشاء عرض / كوبون</h3><form class="maxi-form" onsubmit="maxiAddPromo(event)"><label>كود الخصم<input name="code" required></label><label>اسم العرض<input name="title" required></label><label>نوع الخصم<select name="discount_type"><option value="percentage">نسبة مئوية</option><option value="fixed">مبلغ ثابت</option></select></label><label>قيمة الخصم<input name="discount_value" type="number" min="1" step=".01" required></label><label>الحد الأدنى للطلب<input name="minimum_order" type="number" min="0" value="0"></label><button class="admin-primary">حفظ العرض</button></form></div>'+maxiTable(["العرض","الخصم","الحالة","الإجراءات"],promos.map(p=>'<tr><td>'+maxiEsc(p.code)+' — '+maxiEsc(p.title)+'</td><td>'+p.discount_value+(p.discount_type==="percentage"?"%":" EGP")+'</td><td>'+(p.active?"نشط":"متوقف")+'</td><td>'+maxiActions([maxiButton(p.active?"إيقاف":"تفعيل","maxiToggleRow('promo_offers',"+p.id+","+(!p.active)+")"),maxiButton("حذف","maxiDeleteRow('promo_offers',"+p.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("")||'<tr><td colspan="4">لا توجد عروض.</td></tr>');
+}
+async function maxiAddBanner(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const {error}=await supabaseClient.from("store_banners").insert(d);if(error){maxiError(error);return}maxiLoadPage("store")}
+async function maxiAddCategory(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const {error}=await supabaseClient.from("store_categories").insert(d);if(error){maxiError(error);return}maxiLoadPage("store")}
+async function maxiAddPromo(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));d.code=d.code.trim().toUpperCase();d.discount_value=Number(d.discount_value);d.minimum_order=Number(d.minimum_order||0);const {error}=await supabaseClient.from("promo_offers").insert(d);if(error){maxiError(error);return}maxiLoadPage("store")}
+async function maxiToggleRow(table,id,active){const {error}=await supabaseClient.from(table).update({active,updated_at:new Date().toISOString()}).eq("id",id);if(error){maxiError(error);return}maxiLoadPage("store")}
+async function maxiDeleteRow(table,id){if(!confirm("تأكيد الحذف؟"))return;const {error}=await supabaseClient.from(table).delete().eq("id",id);if(error){maxiError(error);return}maxiLoadPage("store")}
+async function maxiRenderShipping(root){
+ const rows=await maxiRows("shipping_zones","sort_order");
+ root.innerHTML='<span class="eyebrow">DELIVERY OPERATIONS</span><h1 class="admin-title">مناطق ورسوم الشحن</h1><p class="admin-muted">أضف مناطق التوصيل والرسوم والحد الأدنى للشحن المجاني. لم نغيّر رسومك الحالية.</p><div class="maxi-card"><h3>إضافة منطقة شحن</h3><form class="maxi-form" onsubmit="maxiAddShipping(event)"><label>اسم المنطقة<input name="name" required></label><label>المحافظة<input name="governorate"></label><label class="wide">المدن / المراكز (افصل بينها بفاصلة)<input name="cities"></label><label>رسوم الشحن بالجنيه<input name="fee" type="number" min="0" step=".01" required></label><label>شحن مجاني فوق مبلغ<input name="free_shipping_threshold" type="number" min="0" step=".01"></label><label>أقل مدة توصيل (أيام)<input name="estimated_days_min" type="number" min="0"></label><label>أقصى مدة توصيل (أيام)<input name="estimated_days_max" type="number" min="0"></label><button class="admin-primary">حفظ المنطقة</button></form></div>'+maxiTable(["المنطقة","المدن","الرسوم","مجاني فوق","الحالة","إجراءات"],rows.map(z=>'<tr><td>'+maxiEsc(z.name)+'<br><small>'+maxiEsc(z.governorate)+'</small></td><td>'+maxiEsc((z.cities||[]).join(", "))+'</td><td>'+maximosMoney(z.fee)+'</td><td>'+maxiEsc(z.free_shipping_threshold??"—")+'</td><td>'+(z.active?"نشط":"متوقف")+'</td><td>'+maxiActions([maxiButton(z.active?"إيقاف":"تفعيل","maxiToggleRow('shipping_zones',"+z.id+","+(!z.active)+")"),maxiButton("حذف","maxiDeleteRow('shipping_zones',"+z.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("")||'<tr><td colspan="6">لم تتم إضافة مناطق شحن بعد.</td></tr>');
+}
+async function maxiAddShipping(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));d.fee=Number(d.fee);d.free_shipping_threshold=d.free_shipping_threshold?Number(d.free_shipping_threshold):null;d.estimated_days_min=d.estimated_days_min?Number(d.estimated_days_min):null;d.estimated_days_max=d.estimated_days_max?Number(d.estimated_days_max):null;d.cities=d.cities?d.cities.split(",").map(x=>x.trim()).filter(Boolean):[];const {error}=await supabaseClient.from("shipping_zones").insert(d);if(error){maxiError(error);return}maxiLoadPage("shipping")}
+async function maxiRenderPayments(root){
+ const rows=await maxiRows("payment_methods","sort_order");
+ root.innerHTML='<span class="eyebrow">CHECKOUT CONFIGURATION</span><h1 class="admin-title">طرق الدفع</h1><p class="admin-muted">إدارة طرق الدفع المتاحة. مفاتيح الربط السرية لا توضع هنا ولا في المتصفح.</p><div class="maxi-card"><h3>إضافة طريقة دفع</h3><form class="maxi-form" onsubmit="maxiAddPayment(event)"><label>الاسم<input name="name" required></label><label>الكود (مثل cod / vodafone_cash)<input name="code" required></label><label>المزود<input name="provider"></label><label>نوع الطريقة<select name="is_online"><option value="false">يدوي / عند الاستلام</option><option value="true">إلكتروني</option></select></label><button class="admin-primary">إضافة الطريقة</button></form></div>'+maxiTable(["الطريقة","المزود","النوع","الحالة","إجراءات"],rows.map(p=>'<tr><td>'+maxiEsc(p.name)+'</td><td>'+maxiEsc(p.provider||"—")+'</td><td>'+(p.is_online?"إلكتروني":"يدوي")+'</td><td>'+(p.enabled?"مفعلة":"متوقفة")+'</td><td>'+maxiActions([maxiButton(p.enabled?"إيقاف":"تفعيل","maxiToggleRow('payment_methods',"+p.id+","+(!p.enabled)+")"),maxiButton("حذف","maxiDeleteRow('payment_methods',"+p.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("")||'<tr><td colspan="5">لا توجد طرق دفع معرفة في الجدول بعد. الدفع عند الاستلام الحالي يظل كما هو.</td></tr>')+'<div class="admin-note">تفعيل الدفع الإلكتروني يتطلب بوابة دفع فعلية، Edge Function آمنة، وتحقق Webhook. هذه الشاشة لا تنفذ تحصيلًا ماليًا بنفسها.</div>';
+}
+async function maxiAddPayment(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));d.is_online=d.is_online==="true";const {error}=await supabaseClient.from("payment_methods").insert(d);if(error){maxiError(error);return}maxiLoadPage("payments")}
+async function maxiRenderReturns(root){
+ const [returns,refunds]=await Promise.all([maxiRows("order_returns","requested_at"),maxiRows("order_refunds","created_at")]);
+ root.innerHTML='<span class="eyebrow">AFTER-SALES</span><h1 class="admin-title">المرتجعات والاسترداد</h1><p class="admin-muted">سجل طلبات الإرجاع وحالة معالجة المبالغ. تسجيل الاسترداد لا يحوّل أموالًا تلقائيًا.</p>'+maxiTable(["رقم المرتجع","رقم الطلب","السبب","الحالة","التاريخ","إجراءات"],returns.map(r=>'<tr><td>#'+r.id+'</td><td>#'+r.order_id+'</td><td>'+maxiEsc(r.reason)+'</td><td><select onchange="maxiUpdateReturn('+r.id+',this.value)">'+["requested","approved","rejected","received","refunded","closed"].map(s=>'<option '+(r.status===s?"selected":"")+'>'+s+'</option>').join("")+'</select></td><td>'+maxiEsc(maximosDate(r.requested_at))+'</td><td>'+maxiButton("تسجيل استرداد","maxiRefund("+r.order_id+","+r.id+")")+'</td></tr>').join("")||'<tr><td colspan="6">لا توجد طلبات مرتجعات.</td></tr>')+'<h2 class="admin-title" style="font-size:22px;margin-top:28px">سجل الاستردادات</h2>'+maxiTable(["رقم العملية","الطلب","المبلغ","الطريقة","الحالة","التاريخ"],refunds.map(r=>'<tr><td>#'+r.id+'</td><td>#'+r.order_id+'</td><td>'+maximosMoney(r.amount)+'</td><td>'+maxiEsc(r.method)+'</td><td>'+maxiEsc(r.status)+'</td><td>'+maxiEsc(maximosDate(r.created_at))+'</td></tr>').join("")||'<tr><td colspan="6">لا توجد عمليات استرداد مسجلة.</td></tr>');
+}
+async function maxiUpdateReturn(id,status){const {error}=await supabaseClient.from("order_returns").update({status,processed_at:new Date().toISOString(),processed_by:adminUser?.id}).eq("id",id);if(error){maxiError(error);return}maxiLoadPage("returns")}
+async function maxiRefund(orderId,returnId){const amount=Number(prompt("قيمة المبلغ المراد تسجيل استرداده بالجنيه:"));if(!Number.isFinite(amount)||amount<=0)return;const method=prompt("طريقة الاسترداد (نقدي / تحويل / بوابة دفع):","manual")||"manual";const {error}=await supabaseClient.from("order_refunds").insert({order_id:orderId,return_id:returnId,amount,method,status:"processed",processed_at:new Date().toISOString(),processed_by:adminUser?.id});if(error){maxiError(error);return}await supabaseClient.from("order_returns").update({status:"refunded",processed_at:new Date().toISOString(),processed_by:adminUser?.id}).eq("id",returnId);maxiLoadPage("returns")}
+async function maxiRenderReports(root){
+ const [os,costs,pcs]=await Promise.all([maxiRows("orders","created_at"),maxiRows("order_item_costs","created_at"),maxiRows("product_costs","updated_at")]);
+ const delivered=os.filter(o=>o.status==="Delivered"),revenue=delivered.reduce((s,o)=>s+Number(o.total||0),0);
+ const costByOrder={};costs.forEach(x=>costByOrder[x.order_id]=(costByOrder[x.order_id]||0)+Number(x.unit_cost||0)*Number(x.quantity||0));
+ const known=delivered.filter(o=>costs.some(c=>Number(c.order_id)===Number(o.id)));
+ const cogs=known.reduce((s,o)=>s+(costByOrder[o.id]||0),0),profit=known.reduce((s,o)=>s+Number(o.total||0),0)-cogs;
+ const top={};delivered.forEach(o=>(o.items||[]).forEach(i=>{const k=i.name||String(i.id);top[k]=(top[k]||0)+Number(i.qty||1)}));
+ root.innerHTML='<span class="eyebrow">FINANCIAL INTELLIGENCE</span><h1 class="admin-title">تقارير المبيعات والأرباح</h1><p class="admin-muted">الأرباح تعتمد على تكلفة المنتج المسجلة وقت تأكيد الطلب. الطلبات القديمة أو التي لم تسجل تكلفة ستظهر خارج حساب الربح.</p><div class="maxi-grid"><div class="maxi-card"><small>مبيعات الطلبات المسلّمة</small><h2>'+maximosMoney(revenue)+'</h2></div><div class="maxi-card"><small>تكلفة البضاعة المسجلة</small><h2>'+maximosMoney(cogs)+'</h2></div><div class="maxi-card"><small>ربح إجمالي للطلبات ذات التكلفة</small><h2>'+maximosMoney(profit)+'</h2><small>'+known.length+' من '+delivered.length+' طلب مسلّم</small></div></div><div class="maxi-card"><h3>تسجيل تكلفة المنتجات</h3><p class="maxi-muted">التكلفة سرية ولا تظهر في واجهة الزوار.</p>'+maxiTable(["المنتج","سعر البيع","تكلفة الشراء","حفظ"],products.map(p=>{const c=pcs.find(x=>Number(x.product_id)===Number(p.id));return '<tr><td>'+maxiEsc(p.name)+'</td><td>'+maximosMoney(p.price)+'</td><td><input id="maxi-cost-'+p.id+'" type="number" min="0" step=".01" value="'+(c?.cost_price??"")+'" style="padding:8px;width:110px"></td><td>'+maxiButton("حفظ التكلفة","maxiSaveCost("+p.id+")")+'</td></tr>'}).join(""))+'</div><div class="maxi-card"><h3>المنتجات الأكثر مبيعًا (طلبات مسلّمة)</h3>'+maxiTable(["المنتج","الوحدات"],Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([n,q])=>'<tr><td>'+maxiEsc(n)+'</td><td>'+q+'</td></tr>').join("")||'<tr><td colspan="2">لا توجد مبيعات مسلّمة بعد.</td></tr>')+'</div>';
+}
+async function maxiSaveCost(id){const v=Number(document.getElementById("maxi-cost-"+id).value);if(!Number.isFinite(v)||v<0){alert("أدخل تكلفة صحيحة.");return}const {error}=await supabaseClient.from("product_costs").upsert({product_id:id,cost_price:v,updated_at:new Date().toISOString(),updated_by:adminUser?.id});if(error){maxiError(error);return}alert("تم حفظ التكلفة. ستُسجل التكلفة في الطلبات عند تأكيدها مستقبلًا.");maxiLoadPage("reports")}
+async function maxiRenderTeam(root){
+ const rows=await maxiRows("staff_roles","created_at");
+ root.innerHTML='<span class="eyebrow">ACCESS CONTROL</span><h1 class="admin-title">الموظفون والصلاحيات</h1><p class="admin-muted">اربط حسابًا موجودًا في Supabase Auth بمعرّف المستخدم UUID، ثم حدد صلاحياته. حساب المدير الأساسي لا يتأثر.</p><div class="maxi-card"><h3>إضافة موظف إلى لوحة الإدارة</h3><form class="maxi-form" onsubmit="maxiAddStaff(event)"><label class="wide">User UUID من حساب Supabase Auth<input name="user_id" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label><label>اسم الموظف<input name="display_name"></label><label>الدور<input name="role" value="staff"></label><div class="wide"><b style="font-size:11px">الصلاحيات الممنوحة</b><div class="maxi-perm-grid">'+maxiPermissions.map(([p,l])=>'<label><input type="checkbox" name="perm" value="'+p+'"> '+l+'</label>').join("")+'</div></div><button class="admin-primary">حفظ الصلاحيات</button></form><p class="admin-note">إنشاء حساب الدخول نفسه يتم بدعوة آمنة من Supabase Auth؛ لا نستخدم مفتاح الخدمة داخل الموقع ولا نطلب منك مشاركة كلمة مرور الموظف.</p></div>'+maxiTable(["الموظف","UUID","الدور","الحالة","إجراءات"],rows.map(s=>'<tr><td>'+maxiEsc(s.display_name)+'</td><td><small>'+maxiEsc(s.user_id)+'</small></td><td>'+maxiEsc(s.role)+'</td><td>'+(s.active?"نشط":"موقوف")+'</td><td>'+maxiActions([maxiButton(s.active?"إيقاف":"تفعيل","maxiToggleStaff('"+s.user_id+"',"+(!s.active)+")"),maxiButton("حذف","maxiDeleteStaff('"+s.user_id+"')","maxi-secondary maxi-warning")])+'</td></tr>').join("")||'<tr><td colspan="5">لم تتم إضافة موظفين بعد.</td></tr>');
+}
+async function maxiAddStaff(e){e.preventDefault();const fd=new FormData(e.target);const permissions={};for(const p of fd.getAll("perm"))permissions[p]=true;const row={user_id:String(fd.get("user_id")).trim(),display_name:String(fd.get("display_name")||""),role:String(fd.get("role")||"staff"),permissions,active:true,created_by:adminUser?.id};const {error}=await supabaseClient.from("staff_roles").upsert(row);if(error){maxiError(error);return}maxiLoadPage("team")}
+async function maxiToggleStaff(id,active){const {error}=await supabaseClient.from("staff_roles").update({active,updated_at:new Date().toISOString()}).eq("user_id",id);if(error){maxiError(error);return}maxiLoadPage("team")}
+async function maxiDeleteStaff(id){if(!confirm("إزالة صلاحيات الموظف؟"))return;const {error}=await supabaseClient.from("staff_roles").delete().eq("user_id",id);if(error){maxiError(error);return}maxiLoadPage("team")}
+</script>
+
 </body></html>
