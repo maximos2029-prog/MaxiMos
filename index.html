@@ -552,32 +552,7 @@ async function maxiInvoice(id){
  const s=inv.data.snapshot||{};
  const rows=(s.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td><td>'+maximosMoney(Number(i.qty||1)*Number(i.price||0))+'</td></tr>').join("");
  const w=window.open("","_blank");if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
- w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMOS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script>
-<script>
-async function maxiLoadStorefrontContent(){
- try{
-  await ensureSupabase();
-  const [br,cr]=await Promise.all([
-   supabaseClient.from("store_banners").select("*").eq("active",true).eq("placement","home_hero").order("sort_order"),
-   supabaseClient.from("store_categories").select("*").eq("active",true).order("sort_order")
-  ]);
-  if(!br.error&&br.data?.length){
-   const b=br.data[0], title=document.getElementById("heroTitle"),desc=document.getElementById("heroDescription"),eyebrow=document.getElementById("heroEyebrow"),img=document.getElementById("heroImage"),button=document.getElementById("heroButton");
-   if(title&&b.title)title.textContent=b.title;
-   if(desc&&b.subtitle)desc.textContent=b.subtitle;
-   if(img&&b.image_url)img.style.backgroundImage='linear-gradient(0deg,#1b1c1810,#1b1c1800),url("'+String(b.image_url).replace(/"/g,"%22")+'")';
-   if(button&&b.link_url)button.href=b.link_url;
-  }
-  if(!cr.error&&cr.data?.length){
-   const grid=document.querySelector(".category-grid");
-   if(grid)grid.innerHTML=cr.data.map(cat=>'<div class="category" role="button" tabindex="0" onclick="filterCategory(\\''+String(cat.name).replace(/'/g,"\\\\'")+'\\')"><img src="'+String(cat.image_url||"").replace(/"/g,"%22")+'" alt="'+maxiEsc(cat.name)+'"><span>'+maxiEsc(cat.name)+'</span></div>').join("");
-  }
- }catch(e){console.warn("Storefront merchandising uses the existing homepage settings:",e)}
-}
-setTimeout(maxiLoadStorefrontContent,900);
-</script>
-
-</body></html>');w.document.close();
+ w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMOS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script></body></html>');w.document.close();
 }
 async function maxiCreateReturn(id){
  const reason=prompt("اكتب سبب طلب المرتجع:");if(!reason)return;
@@ -641,4 +616,28 @@ async function maxiToggleStaff(id,active){const {error}=await supabaseClient.fro
 async function maxiDeleteStaff(id){if(!confirm("إزالة صلاحيات الموظف؟"))return;const {error}=await supabaseClient.from("staff_roles").delete().eq("user_id",id);if(error){maxiError(error);return}maxiLoadPage("team")}
 </script>
 
+
+<script>
+async function maxiLoadStorefrontContent(){
+ try{
+  await ensureSupabase();
+  const [br,cr]=await Promise.all([
+   supabaseClient.from("store_banners").select("*").eq("active",true).eq("placement","home_hero").order("sort_order"),
+   supabaseClient.from("store_categories").select("*").eq("active",true).order("sort_order")
+  ]);
+  if(!br.error&&br.data?.length){
+   const b=br.data[0], title=document.getElementById("heroTitle"),desc=document.getElementById("heroDescription"),eyebrow=document.getElementById("heroEyebrow"),img=document.getElementById("heroImage"),button=document.getElementById("heroButton");
+   if(title&&b.title)title.textContent=b.title;
+   if(desc&&b.subtitle)desc.textContent=b.subtitle;
+   if(img&&b.image_url)img.style.backgroundImage='linear-gradient(0deg,#1b1c1810,#1b1c1800),url("'+String(b.image_url).replace(/"/g,"%22")+'")';
+   if(button&&b.link_url)button.href=b.link_url;
+  }
+  if(!cr.error&&cr.data?.length){
+   const grid=document.querySelector(".category-grid");
+   if(grid)grid.innerHTML=cr.data.map(cat=>'<div class="category" role="button" tabindex="0" onclick="filterCategory(\\''+String(cat.name).replace(/'/g,"\\\\'")+'\\')"><img src="'+String(cat.image_url||"").replace(/"/g,"%22")+'" alt="'+maxiEsc(cat.name)+'"><span>'+maxiEsc(cat.name)+'</span></div>').join("");
+  }
+ }catch(e){console.warn("Storefront merchandising uses the existing homepage settings:",e)}
+}
+setTimeout(maxiLoadStorefrontContent,900);
+</script>
 </body></html>
