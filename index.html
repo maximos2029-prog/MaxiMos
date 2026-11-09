@@ -234,15 +234,11 @@ async function openAdmin(){
       if(error) throw error;
       if(data.session?.user){
         adminUser=data.session.user;
-        const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("is_admin").eq("id",adminUser.id).single();
+        const [{data:profile,error:profileError},{data:staff,error:staffError}]=await Promise.all([supabaseClient.from("profiles").select("is_admin").eq("id",adminUser.id).maybeSingle(),supabaseClient.from("staff_roles").select("role,permissions,active").eq("user_id",adminUser.id).maybeSingle()]);
         if(profileError) throw profileError;
-        if(profile?.is_admin){
-          await loadAdminData();
-          adminAuthenticated=true;
-        } else {
-          await supabaseClient.auth.signOut();
-          adminUser=null;
-        }
+        if(staffError) throw staffError;
+        maxiIsAdmin=!!profile?.is_admin;maxiUserPermissions=staff?.active?staff.permissions||{}:{};
+        if(maxiIsAdmin||staff?.active){await loadAdminData();adminAuthenticated=true;}else{await supabaseClient.auth.signOut();adminUser=null;}
       }
     }
     login.style.display=adminAuthenticated?"none":"block";
@@ -271,7 +267,7 @@ function closeAdmin(){
   document.getElementById("adminShell").classList.remove("show");
   document.body.style.overflow="";
 }
-async function adminLogin(){try{await ensureSupabase()}catch(e){alert(e.message||String(e));return}const email=document.getElementById("adminEmail").value.trim();const password=document.getElementById("adminPassword").value;if(!email||!password){alert("Enter your admin email and password.");return}const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error){alert("Login failed: "+error.message);return}adminUser=data.user;const {data:profile,error:profileError}=await supabaseClient.from("profiles").select("is_admin").eq("id",adminUser.id).single();if(profileError||!profile?.is_admin){await supabaseClient.auth.signOut();adminUser=null;alert("This account is not authorized as a MaxiMos administrator. Complete the admin setup SQL first.");return}try{await loadAdminData()}catch(e){alert("Could not load cloud data: "+e.message);return}adminAuthenticated=true;document.getElementById("adminLoginView").style.display="none";document.getElementById("adminAppView").style.display="grid";document.getElementById("adminPassword").value="";renderAdmin("overview")}
+async function adminLogin(){try{await ensureSupabase()}catch(e){alert(e.message||String(e));return}const email=document.getElementById("adminEmail").value.trim();const password=document.getElementById("adminPassword").value;if(!email||!password){alert("Enter your admin email and password.");return}const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error){alert("Login failed: "+error.message);return}adminUser=data.user;const [{data:profile},{data:staff}] = await Promise.all([supabaseClient.from("profiles").select("is_admin").eq("id",adminUser.id).maybeSingle(),supabaseClient.from("staff_roles").select("role,permissions,active").eq("user_id",adminUser.id).maybeSingle()]);maxiIsAdmin=!!profile?.is_admin;maxiUserPermissions=staff?.active?staff.permissions||{}:{};if(!maxiIsAdmin&&!staff?.active){await supabaseClient.auth.signOut();adminUser=null;alert("الحساب غير مضاف إلى إدارة MaxiMos. اطلب من المدير تفعيل صلاحياتك.");return}try{await loadAdminData()}catch(e){alert("تعذر تحميل بيانات الإدارة: "+e.message+"\nتأكد أن الموظف لديه صلاحيات قراءة المنتجات والطلبات والعملاء.");return}adminAuthenticated=true;document.getElementById("adminLoginView").style.display="none";document.getElementById("adminAppView").style.display="grid";document.getElementById("adminPassword").value="";renderAdmin("overview")}
 async function adminLogout(){await supabaseClient.auth.signOut();adminAuthenticated=false;adminUser=null;document.getElementById("adminAppView").style.display="none";document.getElementById("adminLoginView").style.display="block"}
 function showAdminTab(tab){document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));renderAdmin(tab)}
 function renderAdmin(tab){if(!adminAuthenticated)return;const root=document.getElementById("adminContent");if(tab==="content"){renderStoreContentEditor();return}if(tab==="settings"){renderStoreSettings();return}if(tab==="overview"){let revenue=orders.filter(o=>o.status==="Delivered").reduce((s,o)=>s+o.total,0);root.innerHTML=`<span class="eyebrow">STORE PERFORMANCE</span><h1 class="admin-title">Overview</h1><p class="admin-muted">Live cloud data shared across your authorized devices.</p><div class="admin-stats"><div class="admin-stat"><span>PRODUCTS</span><strong>${products.length}</strong></div><div class="admin-stat"><span>ORDERS</span><strong>${orders.length}</strong></div><div class="admin-stat"><span>CUSTOMERS</span><strong>${customers.length}</strong></div><div class="admin-stat"><span>DELIVERED SALES</span><strong>${fmt(revenue)}</strong></div></div><div class="admin-panel"><h3>Recent orders</h3>${orders.length?orders.slice(0,5).map(orderRow).join(""):'<p class="admin-muted">No orders yet. Orders placed through this browser will appear here.</p>'}</div><div class="admin-panel"><h3>Stock alerts</h3>${products.filter(p=>Number(p.stock)<=5).map(p=>`<p class="admin-muted">${esc(p.name)} — <b>${p.stock} left</b></p>`).join("")||'<p class="admin-muted">All products have more than 5 units in stock.</p>'}</div>`}
@@ -479,8 +475,10 @@ async function saveMaximosCategories(e){
 <script>
 /* MaxiMos operations modules — additive UI over the existing Supabase project. */
 const maxiBaseRenderAdmin = window.renderAdmin;
+let maxiIsAdmin=false,maxiUserPermissions={};
+function maxiCan(permission){return maxiIsAdmin||maxiUserPermissions?.[permission]===true}
 const maxiPermissions = [
-  ["orders.read","عرض الطلبات"],["orders.manage","إدارة الطلبات"],
+  ["orders.read","عرض الطلبات"],["orders.manage","إدارة الطلبات"],["customers.read","عرض العملاء"],["customers.manage","تعديل بيانات العملاء"],
   ["returns.manage","المرتجعات والاسترداد"],["products.manage","إدارة المنتجات والتكلفة"],
   ["store.manage","محتوى المتجر والعروض"],["shipping.manage","الشحن"],
   ["payments.manage","طرق الدفع"],["reports.profit","تقارير الأرباح"],
