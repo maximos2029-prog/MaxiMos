@@ -87,7 +87,8 @@
 <label>Price (EGP)<input id="editPrice" type="number" min="0" required></label>
 <label>Stock quantity<input id="editStock" type="number" min="0" value="10" required></label>
 <label>Category<select id="editCategory"><option>Essential Tees</option><option>Urban Casual</option><option>Smart Formal</option><option>Active Wear</option></select></label>
-<label class="wide">Main image URL<input id="editImage" type="url" placeholder="https://..."></label>
+<label class="wide">Product image — choose from your phone<input id="editImageFile" type="file" accept="image/*" onchange="uploadProductImage(this)" style="display:block;width:100%;padding:10px;border:1px solid #ddd;background:#fff;margin-top:7px"><small id="imageUploadStatus" style="display:block;margin-top:7px;color:#687052">Choose an image from Gallery. It will upload automatically.</small></label>
+<label class="wide">Or paste image URL<input id="editImage" type="url" placeholder="https://..."></label>
 <label class="wide">Description<textarea id="editDescription"></textarea></label>
 <div class="wide"><button class="admin-primary" type="submit">SAVE PRODUCT</button></div>
 </form></div></div>
@@ -271,8 +272,38 @@ if(tab==="customers"){root.innerHTML=`<span class="eyebrow">CUSTOMER RELATIONSHI
 if(tab==="settings"){root.innerHTML=`<span class="eyebrow">STORE CONFIGURATION</span><h1 class="admin-title">Settings</h1><div class="admin-panel"><h3>WhatsApp checkout</h3><p class="admin-muted">Current destination: +20 103 020 7079</p><label class="admin-muted">WhatsApp number (international format, digits only)<input id="settingWhatsapp" value="${localStorage.getItem("maximos_whatsapp")||"201030207079"}" style="display:block;width:100%;max-width:360px;margin:8px 0 15px;padding:11px;border:1px solid #ddd"></label><button class="admin-primary" onclick="saveWhatsapp()">SAVE NUMBER</button></div><div class="admin-note">Cloud database: Supabase. Admin access is controlled by Supabase Authentication and the is_admin profile flag. Create or change your password from Supabase Authentication.</div><button class="admin-action" onclick="exportBackup()">DOWNLOAD STORE BACKUP (JSON)</button>`}}
 function orderRow(o){return `<p style="font-size:11px;border-bottom:1px solid #eee;padding:8px 0">#${o.id} · ${esc(o.customer.name)} · ${fmt(o.total)} · <b>${o.status}</b></p>`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function openProductEditor(id){let p=products.find(x=>x.id===id);document.getElementById("productEditorForm").reset();document.getElementById("editProductId").value=p?.id||"";document.getElementById("editorTitle").textContent=p?"Edit product":"Add product";if(p){document.getElementById("editName").value=p.name;document.getElementById("editPrice").value=p.price;document.getElementById("editStock").value=p.stock??0;document.getElementById("editCategory").value=p.category||"Urban Casual";document.getElementById("editImage").value=p.images?.[0]||"";document.getElementById("editDescription").value=p.desc||""}document.getElementById("productEditorModal").classList.add("show")}
+function openProductEditor(id){let p=products.find(x=>x.id===id);document.getElementById("productEditorForm").reset();document.getElementById("imageUploadStatus").textContent="Choose an image from Gallery. It will upload automatically.";document.getElementById("editProductId").value=p?.id||"";document.getElementById("editorTitle").textContent=p?"Edit product":"Add product";if(p){document.getElementById("editName").value=p.name;document.getElementById("editPrice").value=p.price;document.getElementById("editStock").value=p.stock??0;document.getElementById("editCategory").value=p.category||"Urban Casual";document.getElementById("editImage").value=p.images?.[0]||"";document.getElementById("editDescription").value=p.desc||""}document.getElementById("productEditorModal").classList.add("show")}
 function closeProductEditor(){document.getElementById("productEditorModal").classList.remove("show")}
+async function uploadProductImage(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  const status=document.getElementById("imageUploadStatus");
+  const imageField=document.getElementById("editImage");
+  if(!file.type||!file.type.startsWith("image/")){
+    alert("Please choose an image file.");input.value="";return;
+  }
+  if(file.size>8*1024*1024){
+    alert("Image is too large. Please choose an image smaller than 8 MB.");input.value="";return;
+  }
+  input.disabled=true;
+  if(status)status.textContent="Uploading image... please wait";
+  try{
+    await ensureSupabase();
+    const cleanName=file.name.replace(/[^a-zA-Z0-9._-]/g,"-").slice(-90)||"product-image.jpg";
+    const filePath="products/"+Date.now()+"-"+cleanName;
+    const {data,error}=await supabaseClient.storage.from("product-images").upload(filePath,file,{cacheControl:"3600",upsert:false,contentType:file.type});
+    if(error)throw error;
+    const {data:publicData}=supabaseClient.storage.from("product-images").getPublicUrl(data.path);
+    if(!publicData?.publicUrl)throw new Error("Could not create a public image URL.");
+    imageField.value=publicData.publicUrl;
+    if(status)status.textContent="Image uploaded successfully. Save the product to keep it.";
+  }catch(err){
+    console.error("Product image upload failed:",err);
+    if(status)status.textContent="Upload failed. You can still paste an image URL.";
+    alert("Could not upload image: "+(err?.message||String(err))+"\nCheck that the product-images storage bucket allows authenticated uploads.");
+    input.value="";
+  }finally{input.disabled=false;}
+}
 async function saveAdminProduct(e){e.preventDefault();try{await ensureSupabase()}catch(err){alert(err.message||String(err));return}let id=document.getElementById("editProductId").value;let p=products.find(x=>String(x.id)===String(id));let image=document.getElementById("editImage").value||"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85";let data={name:document.getElementById("editName").value.trim(),price:Number(document.getElementById("editPrice").value),stock:Number(document.getElementById("editStock").value),category:document.getElementById("editCategory").value,desc:document.getElementById("editDescription").value,images:p?.images?.length?[image,...p.images.slice(1)]:[image,image,image,image],tag:p?.tag||"NEW"};if(p)Object.assign(p,data);else products.push({id:Math.max(0,...products.map(x=>Number(x.id)))+1,...data});const {error}=await supabaseClient.from("products").upsert(dbProduct(p||products[products.length-1]));if(error){alert("Could not save product: "+error.message);return}renderProducts();closeProductEditor();renderAdmin("products")}
 async function deleteAdminProduct(id){if(!confirm("Delete this product from the catalog?"))return;const {error}=await supabaseClient.from("products").update({active:false}).eq("id",id);if(error){alert("Could not delete product: "+error.message);return}let i=products.findIndex(p=>p.id===id);if(i>=0)products.splice(i,1);renderProducts();renderAdmin("products")}
 async function setOrderStatus(id,status){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;if(status==="Confirmed"&&!o.stock_deducted){const {error}=await supabaseClient.rpc("confirm_maximos_order",{p_order_id:Number(id)});if(error){alert("Could not confirm order/update stock: "+error.message);return}o.stock_deducted=true;for(const item of o.items){const p=products.find(x=>Number(x.id)===Number(item.id));if(p)p.stock=Math.max(0,Number(p.stock||0)-Number(item.qty||1))}}else{const {error}=await supabaseClient.from("orders").update({status}).eq("id",id);if(error){alert("Could not update order: "+error.message);return}}o.status=status;renderAdmin("orders")}
