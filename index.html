@@ -326,4 +326,125 @@ async function recordOrder(items,details){try{await ensureSupabase()}catch(e){al
 
 renderProducts();updateCart();loadPublicProducts();
 </script>
+
+<style>
+/* MaxiMos management suite */
+.admin-insights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.admin-insight{background:#fff;border:1px solid #e8e4dc;padding:16px}
+.admin-insight small{display:block;color:#85847b;font-size:9px;letter-spacing:1px}
+.admin-insight strong{display:block;font-size:22px;margin-top:8px}
+.admin-toolbar .admin-search{min-width:220px;flex:1}
+.admin-chart{display:flex;align-items:end;gap:7px;height:190px;padding:20px 8px 28px;border-bottom:1px solid #ddd;min-width:480px}
+.admin-chart-col{flex:1;display:flex;align-items:center;justify-content:end;flex-direction:column;height:100%;gap:7px}
+.admin-chart-bar{width:min(100%,38px);background:#414a38;min-height:2px;border-radius:2px 2px 0 0}
+.admin-chart-col small{font-size:9px;color:#777}
+.admin-chart-col b{font-size:9px;font-weight:500}
+.admin-status{display:inline-block;padding:5px 8px;background:#eeece5;font-size:9px}
+.admin-status.warn{background:#f4e7dc;color:#8a4a27}
+.admin-status.good{background:#e6eee4;color:#435b3c}
+.admin-mobile-note{font-size:11px;color:#777;margin:8px 0}
+@media(max-width:800px){.admin-insights{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-layout{grid-template-columns:1fr}.admin-side{display:flex;overflow:auto;gap:4px;padding:8px;position:sticky;top:58px;z-index:4}.admin-side .side-label{display:none}.admin-tab{width:auto;flex:0 0 auto;margin:0;padding:11px 10px}.admin-main{padding:18px 12px}.admin-title{font-size:25px}}
+</style>
+<script>
+/* MaxiMos admin suite: uses existing Supabase tables and policies; no schema changes. */
+let adminOrderQuery="",adminOrderStatus="All",adminProductQuery="";
+function maximosMoney(n){return fmt(Number(n)||0)}
+function maximosDate(v){const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("en-EG")}
+function maximosAdminTabButtons(){
+ const side=document.querySelector(".admin-side");if(!side)return;
+ const tabs=[["analytics","▥ Analytics"],["inventory","▣ Inventory"],["categories","▧ Categories"]];
+ for(const [key,label] of tabs){if(!side.querySelector('[data-tab="'+key+'"]')){const b=document.createElement("button");b.className="admin-tab";b.dataset.tab=key;b.textContent=label;b.onclick=()=>showAdminTab(key);side.appendChild(b)}}
+}
+function renderAdmin(tab){
+ if(!adminAuthenticated)return;
+ maximosAdminTabButtons();
+ document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+ const root=document.getElementById("adminContent");
+ const delivered=orders.filter(o=>o.status==="Delivered");
+ const revenue=delivered.reduce((s,o)=>s+Number(o.total||0),0);
+ const pending=orders.filter(o=>!["Delivered","Cancelled"].includes(o.status));
+ const low=products.filter(p=>Number(p.stock||0)<=5);
+ if(tab==="overview"){
+  const recent=[...orders].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,7);
+  const statusCounts=["New","Confirmed","Preparing","Shipped","Delivered","Cancelled"].map(s=>({s,n:orders.filter(o=>o.status===s).length}));
+  root.innerHTML=`<span class="eyebrow">STORE PERFORMANCE</span><h1 class="admin-title">Overview</h1><p class="admin-muted">ملخص مباشر للمتجر والطلبات والمخزون.</p>
+  <div class="admin-insights">
+   <div class="admin-insight"><small>إجمالي المنتجات النشطة</small><strong>${products.length}</strong></div>
+   <div class="admin-insight"><small>كل الطلبات</small><strong>${orders.length}</strong></div>
+   <div class="admin-insight"><small>طلبات تحتاج متابعة</small><strong>${pending.length}</strong></div>
+   <div class="admin-insight"><small>مبيعات الطلبات المسلّمة</small><strong>${maximosMoney(revenue)}</strong></div>
+   <div class="admin-insight"><small>العملاء</small><strong>${customers.length}</strong></div>
+   <div class="admin-insight"><small>منتجات مخزونها منخفض</small><strong>${low.length}</strong></div>
+   <div class="admin-insight"><small>متوسط الطلب المسلّم</small><strong>${maximosMoney(delivered.length?revenue/delivered.length:0)}</strong></div>
+   <div class="admin-insight"><small>وحدات المخزون الحالية</small><strong>${products.reduce((s,p)=>s+Number(p.stock||0),0)}</strong></div>
+  </div>
+  <div class="admin-panel"><h3>حالة الطلبات</h3><div class="admin-insights">${statusCounts.map(x=>`<div class="admin-insight"><small>${x.s}</small><strong>${x.n}</strong></div>`).join("")}</div></div>
+  <div class="admin-panel"><div class="admin-toolbar"><h3>أحدث الطلبات</h3><button class="admin-action" onclick="showAdminTab('orders')">عرض كل الطلبات</button></div>${recent.length?recent.map(orderRow).join(""):'<p class="admin-muted">لا توجد طلبات حتى الآن.</p>'}</div>
+  <div class="admin-panel"><div class="admin-toolbar"><h3>تنبيهات المخزون</h3><button class="admin-action" onclick="showAdminTab('inventory')">إدارة المخزون</button></div>${low.length?low.map(p=>`<p class="admin-mobile-note">${esc(p.name)} — <b>${Number(p.stock||0)} متبقي</b></p>`).join(""):'<p class="admin-muted">لا توجد منتجات منخفضة المخزون.</p>'}</div>`;
+  return;
+ }
+ if(tab==="analytics"){
+  const days=Number(document.getElementById("maximosAnalyticsDays")?.value||30);
+  const cutoff=days===0?0:Date.now()-days*86400000;
+  const scoped=delivered.filter(o=>!cutoff||new Date(o.createdAt).getTime()>=cutoff);
+  const total=scoped.reduce((s,o)=>s+Number(o.total||0),0);
+  const daily={};scoped.forEach(o=>{const k=maximosDate(o.createdAt);daily[k]=(daily[k]||0)+Number(o.total||0)});
+  const entries=Object.entries(daily).slice(-14);const max=Math.max(1,...entries.map(x=>x[1]));
+  root.innerHTML=`<span class="eyebrow">BUSINESS REPORTS</span><h1 class="admin-title">Analytics & Reports</h1><p class="admin-muted">الإيرادات محسوبة من الطلبات التي حالتها Delivered فقط.</p>
+  <div class="admin-toolbar"><label>الفترة <select id="maximosAnalyticsDays" onchange="renderAdmin('analytics')"><option value="7" ${days===7?"selected":""}>آخر 7 أيام</option><option value="30" ${days===30?"selected":""}>آخر 30 يوم</option><option value="90" ${days===90?"selected":""}>آخر 90 يوم</option><option value="0" ${days===0?"selected":""}>كل الوقت</option></select></label><button class="admin-action" onclick="exportOrders()">تصدير تقرير الطلبات CSV</button></div>
+  <div class="admin-insights"><div class="admin-insight"><small>مبيعات الفترة</small><strong>${maximosMoney(total)}</strong></div><div class="admin-insight"><small>طلبات مسلّمة</small><strong>${scoped.length}</strong></div><div class="admin-insight"><small>متوسط الطلب</small><strong>${maximosMoney(scoped.length?total/scoped.length:0)}</strong></div><div class="admin-insight"><small>قيمة الطلبات قيد التنفيذ</small><strong>${maximosMoney(pending.reduce((s,o)=>s+Number(o.total||0),0))}</strong></div></div>
+  <div class="admin-panel"><h3>المبيعات اليومية</h3>${entries.length?`<div class="admin-chart">${entries.map(([d,v])=>`<div class="admin-chart-col"><b>${maximosMoney(v)}</b><div class="admin-chart-bar" style="height:${Math.max(2,v/max*100)}%"></div><small>${esc(d)}</small></div>`).join("")}</div>`:'<p class="admin-muted">لا توجد طلبات مسلّمة في الفترة المحددة.</p>'}</div>
+  <div class="admin-panel"><h3>ملخص حالات الطلبات</h3>${["New","Confirmed","Preparing","Shipped","Delivered","Cancelled"].map(s=>`<p class="admin-mobile-note">${s}: <b>${orders.filter(o=>o.status===s).length}</b></p>`).join("")}</div>`;
+  return;
+ }
+ if(tab==="inventory"){
+  const rows=products.filter(p=>!adminProductQuery||String(p.name).toLowerCase().includes(adminProductQuery.toLowerCase())||String(p.category).toLowerCase().includes(adminProductQuery.toLowerCase()));
+  root.innerHTML=`<span class="eyebrow">STOCK CONTROL</span><h1 class="admin-title">Inventory</h1><p class="admin-muted">تعديل الكميات مباشرة وحفظها في قاعدة البيانات.</p>
+  <div class="admin-toolbar"><input class="admin-search" id="maximosProductSearch" placeholder="ابحث باسم المنتج أو التصنيف..." value="${esc(adminProductQuery)}" onkeydown="if(event.key==='Enter'){adminProductQuery=this.value;renderAdmin('inventory')}"><button class="admin-action" onclick="adminProductQuery=document.getElementById('maximosProductSearch').value;renderAdmin('inventory')">بحث</button><button class="admin-action" onclick="adminProductQuery='';renderAdmin('inventory')">مسح</button></div>
+  <div class="admin-insights"><div class="admin-insight"><small>إجمالي الوحدات</small><strong>${products.reduce((s,p)=>s+Number(p.stock||0),0)}</strong></div><div class="admin-insight"><small>مخزون منخفض (5 أو أقل)</small><strong>${low.length}</strong></div></div>
+  <div class="admin-panel"><table class="admin-table"><thead><tr><th>المنتج</th><th>التصنيف</th><th>السعر</th><th>المتاح</th><th>حفظ</th></tr></thead><tbody>${rows.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.category||"—")}</td><td>${maximosMoney(p.price)}</td><td><input aria-label="الكمية" id="stock-${p.id}" type="number" min="0" step="1" value="${Number(p.stock||0)}" style="width:78px;padding:8px;border:1px solid #ddd"></td><td><button class="admin-action" onclick="saveInventoryStock('${p.id}')">حفظ الكمية</button></td></tr>`).join("")||'<tr><td colspan="5">لا توجد نتائج.</td></tr>'}</tbody></table></div>`;
+  return;
+ }
+ if(tab==="categories"){
+  const fields=[1,2,3,4].map(n=>`<div class="admin-panel"><h3>التصنيف ${n}</h3><label class="settings-grid"><span>اسم التصنيف<input id="maxcat-name-${n}" value="${esc(storeSettings["category"+n]||"")}" /></span><span>رابط صورة التصنيف<input id="maxcat-image-${n}" type="url" value="${esc(storeSettings["categoryImage"+n]||"")}" /></span></label></div>`).join("");
+  root.innerHTML=`<span class="eyebrow">CATALOG STRUCTURE</span><h1 class="admin-title">Categories</h1><p class="admin-muted">إدارة أسماء وصور أقسام المتجر. التغييرات تحفظ في إعدادات المتجر الحالية.</p><form id="maximosCategoriesForm">${fields}<button class="admin-primary" type="submit">حفظ التصنيفات</button></form>`;
+  document.getElementById("maximosCategoriesForm").onsubmit=saveMaximosCategories;
+  return;
+ }
+ if(tab==="orders"){
+  const filtered=[...orders].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).filter(o=>(adminOrderStatus==="All"||o.status===adminOrderStatus)&&(!adminOrderQuery||[o.id,o.customer?.name,o.customer?.phone,o.customer?.address].some(v=>String(v||"").toLowerCase().includes(adminOrderQuery.toLowerCase()))));
+  root.innerHTML=`<span class="eyebrow">SALES MANAGEMENT</span><h1 class="admin-title">Orders</h1><p class="admin-muted">إدارة ومتابعة الطلبات الواردة من المتجر.</p>
+  <div class="admin-toolbar"><input class="admin-search" id="maximosOrderSearch" placeholder="ابحث برقم الطلب أو الاسم أو الهاتف..." value="${esc(adminOrderQuery)}" onkeydown="if(event.key==='Enter'){adminOrderQuery=this.value;renderAdmin('orders')}"><select id="maximosOrderStatus" onchange="adminOrderStatus=this.value;renderAdmin('orders')"><option ${adminOrderStatus==="All"?"selected":""} value="All">كل الحالات</option>${["New","Confirmed","Preparing","Shipped","Delivered","Cancelled"].map(s=>`<option value="${s}" ${adminOrderStatus===s?"selected":""}>${s}</option>`).join("")}</select><button class="admin-action" onclick="adminOrderQuery=document.getElementById('maximosOrderSearch').value;renderAdmin('orders')">بحث</button><button class="admin-action" onclick="adminOrderQuery='';adminOrderStatus='All';renderAdmin('orders')">مسح</button><button class="admin-action" onclick="exportOrders()">تصدير CSV</button></div>
+  <div class="admin-panel"><table class="admin-table"><thead><tr><th>رقم الطلب</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>الحالة</th><th>التفاصيل</th></tr></thead><tbody>${filtered.map(o=>`<tr><td>#${esc(o.id)}</td><td>${esc(o.customer?.name||"—")}<br><small>${esc(o.customer?.phone||"")}</small></td><td>${maximosDate(o.createdAt)}</td><td>${maximosMoney(o.total)}</td><td><select onchange="setOrderStatus('${esc(o.id)}',this.value)">${["New","Confirmed","Preparing","Shipped","Delivered","Cancelled"].map(s=>`<option ${o.status===s?"selected":""}>${s}</option>`).join("")}</select></td><td><button class="admin-action" onclick="viewOrder('${esc(o.id)}')">عرض</button></td></tr>`).join("")||'<tr><td colspan="6">لا توجد طلبات مطابقة.</td></tr>'}</tbody></table></div>`;
+  return;
+ }
+ if(tab==="products"){
+  root.innerHTML=`<span class="eyebrow">CATALOG</span><h1 class="admin-title">Products & Stock</h1><div class="admin-toolbar"><input class="admin-search" id="maximosProductSearch" placeholder="ابحث عن منتج..." value="${esc(adminProductQuery)}" onkeydown="if(event.key==='Enter'){adminProductQuery=this.value;renderAdmin('products')}"><button class="admin-action" onclick="adminProductQuery=document.getElementById('maximosProductSearch').value;renderAdmin('products')">بحث</button><button class="admin-primary" onclick="openProductEditor()">＋ ADD PRODUCT</button></div><div class="admin-panel"><table class="admin-table"><thead><tr><th>PRODUCT</th><th>PRICE</th><th>CATEGORY</th><th>STOCK</th><th>ACTIONS</th></tr></thead><tbody>${products.filter(p=>!adminProductQuery||String(p.name).toLowerCase().includes(adminProductQuery.toLowerCase())).map(p=>`<tr><td>${esc(p.name)}</td><td>${fmt(Number(p.price))}</td><td>${esc(p.category||"—")}</td><td><span class="admin-badge">${p.stock??0} units</span></td><td><button class="admin-action" onclick="openProductEditor(${p.id})">EDIT</button><button class="admin-action admin-danger" onclick="deleteAdminProduct(${p.id})">DELETE</button></td></tr>`).join("")}</tbody></table></div>`;
+  return;
+ }
+ if(tab==="customers"){
+  root.innerHTML=`<span class="eyebrow">CUSTOMER RELATIONSHIPS</span><h1 class="admin-title">Customers</h1><p class="admin-muted">بيانات العملاء المجمعة من الطلبات.</p><div class="admin-toolbar"><input id="maximosCustomerSearch" class="admin-search" placeholder="ابحث بالاسم أو الهاتف..." oninput="document.querySelectorAll('[data-customer-row]').forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(this.value.toLowerCase()))"><button class="admin-action" onclick="exportCustomers()">تصدير العملاء CSV</button></div><div class="admin-panel"><table class="admin-table"><thead><tr><th>NAME</th><th>PHONE</th><th>ADDRESS</th><th>ORDERS</th><th>SPEND</th></tr></thead><tbody>${customers.map(c=>{let os=orders.filter(o=>o.customer?.phone===c.phone);return `<tr data-customer-row><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.address)}</td><td>${os.length}</td><td>${fmt(os.reduce((s,o)=>s+Number(o.total||0),0))}</td></tr>`}).join("")||'<tr><td colspan="5">لا يوجد عملاء حتى الآن.</td></tr>'}</tbody></table></div>`;
+  return;
+ }
+ if(tab==="content"){renderStoreContentEditor();return}
+ if(tab==="settings"){renderStoreSettings();return}
+ root.innerHTML='<p class="admin-muted">اختر قسمًا من القائمة.</p>';
+}
+async function saveInventoryStock(id){
+ const input=document.getElementById("stock-"+id);const value=Number(input?.value);
+ if(!Number.isInteger(value)||value<0){alert("أدخل كمية صحيحة أكبر من أو تساوي صفر.");return}
+ const {error}=await supabaseClient.from("products").update({stock:value}).eq("id",Number(id));
+ if(error){alert("تعذر حفظ المخزون: "+error.message);return}
+ const p=products.find(x=>String(x.id)===String(id));if(p)p.stock=value;
+ renderAdmin("inventory");
+}
+async function saveMaximosCategories(e){
+ e.preventDefault();const next={...storeSettings};
+ for(let n=1;n<=4;n++){next["category"+n]=document.getElementById("maxcat-name-"+n).value.trim();next["categoryImage"+n]=document.getElementById("maxcat-image-"+n).value.trim()}
+ const {error}=await supabaseClient.from("store_settings").upsert({id:1,settings:next,updated_at:new Date().toISOString()});
+ if(error){alert("تعذر حفظ التصنيفات: "+error.message);return}
+ storeSettings=next;applyStoreSettings();alert("تم حفظ التصنيفات.");renderAdmin("categories");
+}
+</script>
+
 </body></html>
