@@ -350,6 +350,8 @@ function maximosAdminTabButtons(){
  const side=document.querySelector(".admin-side");if(!side)return;
  const tabs=[["analytics","▥ Analytics"],["inventory","▣ Inventory"],["categories","▧ Categories"]];
  for(const [key,label] of tabs){if(!side.querySelector('[data-tab="'+key+'"]')){const b=document.createElement("button");b.className="admin-tab";b.dataset.tab=key;b.textContent=label;b.onclick=()=>showAdminTab(key);side.appendChild(b)}}
+ const map={overview:"orders.read",content:"store.manage",products:"products.manage",orders:"orders.read",customers:"customers.read",settings:"store.manage",analytics:"reports.profit",inventory:"products.manage",categories:"store.manage",store:"store.manage",shipping:"shipping.manage",payments:"payments.manage",returns:"returns.manage",reports:"reports.profit",team:"staff.manage"};
+ side.querySelectorAll(".admin-tab").forEach(b=>{const p=map[b.dataset.tab];b.style.display=(!p||maxiCan(p))?"":"none"});
 }
 function renderAdmin(tab){
  if(!adminAuthenticated)return;
@@ -513,6 +515,8 @@ async function maxiLoadPage(tab){
 }
 window.renderAdmin=function(tab){
  maxiTabButtons();
+ const map={overview:"orders.read",content:"store.manage",products:"products.manage",orders:"orders.read",customers:"customers.read",settings:"store.manage",analytics:"reports.profit",inventory:"products.manage",categories:"store.manage",store:"store.manage",shipping:"shipping.manage",payments:"payments.manage",returns:"returns.manage",reports:"reports.profit",team:"staff.manage"};
+ if(map[tab]&&!maxiCan(map[tab])){alert("ليس لديك صلاحية لفتح هذا القسم.");return}
  document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
  if(["orders","customers","store","shipping","payments","returns","reports","team"].includes(tab)){maxiLoadPage(tab);return}
  if(typeof maxiBaseRenderAdmin==="function")maxiBaseRenderAdmin(tab);
