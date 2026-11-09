@@ -692,4 +692,23 @@ async function recordOrder(items,details){
 setTimeout(maxiLoadCheckoutOptions,1200);
 </script>
 
+
+<script>
+async function loadAdminData(){
+ const [pr,or]=await Promise.all([
+  supabaseClient.from("products").select("*"),
+  supabaseClient.from("orders").select("*").order("created_at",{ascending:false})
+ ]);
+ if(pr.error)throw pr.error;if(or.error)throw or.error;
+ if(!(pr.data||[]).length){const seed=products.map(dbProduct);const {error:seedError}=await supabaseClient.from("products").upsert(seed);if(seedError)throw seedError;const seeded=await supabaseClient.from("products").select("*");if(seeded.error)throw seeded.error;pr.data=seeded.data}
+ products.splice(0,products.length,...(pr.data||[]).filter(p=>p.active).map(fromDbProduct));
+ orders=(or.data||[]).map(fromDbOrder);
+ if(maxiCan("customers.read")){
+  const cr=await supabaseClient.from("customers").select("*").order("created_at",{ascending:false});if(cr.error)throw cr.error;
+  customers=(cr.data||[]).map(c=>({id:c.id,name:c.name,phone:c.phone,address:c.address,email:c.email,notes:c.notes,tags:c.tags,created_at:c.created_at,last_order_at:c.last_order_at}));
+ }else customers=[];
+ renderProducts();await loadStoreSettings();
+}
+</script>
+
 </body></html>
