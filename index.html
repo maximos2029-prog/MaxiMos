@@ -22,6 +22,8 @@
 .admin-main{padding:30px;max-width:1400px;width:100%;margin:auto}.admin-title{font:700 30px "Playfair Display";margin:0 0 5px}.admin-muted{font-size:12px;color:#85847b}.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:25px 0}.admin-stat{background:white;border:1px solid #e8e4dc;padding:19px}.admin-stat span{font-size:10px;color:#85847b;letter-spacing:1px}.admin-stat strong{display:block;font-size:25px;margin-top:9px}.admin-panel{background:white;border:1px solid #e8e4dc;padding:20px;margin:16px 0;overflow:auto}.admin-panel h3{font:600 19px "Playfair Display";margin:0 0 15px}.admin-table{width:100%;border-collapse:collapse;min-width:600px}.admin-table th,.admin-table td{padding:12px 10px;text-align:left;border-bottom:1px solid #eeeae3;font-size:11px}.admin-table th{color:#85847b;font-size:9px;letter-spacing:1px}.admin-action{background:#eeebe4;padding:8px 10px;font-size:10px;margin:2px;color:#3f4338}.admin-primary{background:#414a38;color:#fff;padding:11px 15px;font-size:10px;letter-spacing:.8px;font-weight:700}.admin-danger{color:#8a4038}.admin-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0}.admin-toolbar input,.admin-toolbar select,.admin-form input,.admin-form textarea,.admin-form select{border:1px solid #ddd8ce;background:#fff;padding:11px;font-size:12px;color:#333;min-width:0}.admin-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.admin-form label{font-size:10px;color:#777;display:flex;flex-direction:column;gap:6px}.admin-form .wide{grid-column:1/-1}.admin-form textarea{min-height:75px}.admin-badge{display:inline-block;padding:5px 8px;background:#eeece5;font-size:9px}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.settings-grid label{display:flex;flex-direction:column;gap:6px;font-size:10px;color:#777}.settings-grid input,.settings-grid textarea{width:100%;min-width:0;border:1px solid #ddd8ce;background:#fff;padding:11px;font-size:12px;color:#333}.settings-grid textarea{min-height:75px;resize:vertical}.settings-grid .wide{grid-column:1/-1}.admin-login{max-width:380px;margin:12vh auto;background:white;padding:30px;border:1px solid #e7e2d9}.admin-login input{width:100%;padding:13px;border:1px solid #ddd;margin:12px 0}.admin-note{background:#f2eee5;padding:12px;font-size:11px;color:#716d61;line-height:1.7;margin:15px 0}
 @media(max-width:700px){.settings-grid{grid-template-columns:1fr}.admin-open{padding:8px;font-size:8px}.admin-layout{grid-template-columns:1fr}.admin-side{display:flex;overflow:auto;padding:8px;gap:4px;position:sticky;top:68px;z-index:2}.admin-side .side-label{display:none}.admin-tab{white-space:nowrap;width:auto;margin:0;padding:11px}.admin-main{padding:18px 13px}.admin-stats{grid-template-columns:1fr 1fr;gap:8px}.admin-stat{padding:13px}.admin-stat strong{font-size:20px}.admin-form{grid-template-columns:1fr}.admin-form .wide,.settings-grid .wide{grid-column:auto}.admin-top{padding:0 14px}}
 
+/* Admin editor is outside #adminShell; keep it above the admin shell so it can be seen and used. */
+#productEditorModal{z-index:120}
 </style>
 </head>
 <body>
@@ -85,7 +87,8 @@
 <label>Price (EGP)<input id="editPrice" type="number" min="0" required></label>
 <label>Stock quantity<input id="editStock" type="number" min="0" value="10" required></label>
 <label>Category<select id="editCategory"><option>Essential Tees</option><option>Urban Casual</option><option>Smart Formal</option><option>Active Wear</option></select></label>
-<label class="wide">Main image URL<input id="editImage" type="url" placeholder="https://..."></label>
+<label class="wide">Product image — choose from your phone<input id="editImageFile" type="file" accept="image/*" onchange="uploadProductImage(this)" style="display:block;width:100%;padding:10px;border:1px solid #ddd;background:#fff;margin-top:7px"><small id="imageUploadStatus" style="display:block;margin-top:7px;color:#687052">Choose an image from Gallery. It will upload automatically.</small></label>
+<label class="wide">Or paste image URL<input id="editImage" type="url" placeholder="https://..."></label>
 <label class="wide">Description<textarea id="editDescription"></textarea></label>
 <div class="wide"><button class="admin-primary" type="submit">SAVE PRODUCT</button></div>
 </form></div></div>
@@ -144,7 +147,7 @@ const products=[
 {id:6,name:"Relaxed Chino Trousers",price:1350,tag:"",images:["https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1506629905607-d9c297d6a6a6?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=900&q=85"],desc:"A relaxed modern chino that pairs effortlessly with your everyday rotation."}
 ];
 const fmt=n=>n.toLocaleString("en-EG")+" EGP";products.forEach((p,i)=>{p.stock=p.stock??[24,12,9,18,15,8][i]??10;p.category=p.category??["Essential Tees","Urban Casual","Smart Formal","Active Wear","Essential Tees","Urban Casual"][i]??"Urban Casual"});let cart=[];let current=null;let selectedSize="M",selectedColor="Black",activeImage=0;let bundleSelected=[];
-function renderProducts(){document.getElementById("productGrid").innerHTML=products.slice(0,4).map(p=>`<article class="product-card"><span class="tag">${p.tag}</span><img class="product-img" src="${p.images[0]}" alt="${p.name}" onclick="openProduct(${p.id})"><div class="product-info"><h3>${p.name}</h3><span class="price">${fmt(p.price)}</span><div class="card-actions"><button class="add" onclick="quickAdd(${p.id})">ADD TO BAG</button><button class="view" onclick="openProduct(${p.id})">VIEW DETAILS</button></div></div></article>`).join("")}
+function renderProducts(){document.getElementById("productGrid").innerHTML=products.map(p=>`<article class="product-card"><span class="tag">${p.tag}</span><img class="product-img" src="${p.images[0]}" alt="${p.name}" onclick="openProduct(${p.id})"><div class="product-info"><h3>${p.name}</h3><span class="price">${fmt(p.price)}</span><div class="card-actions"><button class="add" onclick="quickAdd(${p.id})">ADD TO BAG</button><button class="view" onclick="openProduct(${p.id})">VIEW DETAILS</button></div></div></article>`).join("")}
 function quickAdd(id){const p=products.find(x=>x.id===id);cart.push({id:p.id,name:p.name,price:p.price,size:"M",color:"Black",qty:1});updateCart();openCart()}
 function openProduct(id){current=products.find(x=>x.id===id);selectedSize="M";selectedColor="Black";activeImage=0;bundleSelected=[];renderPdp();document.getElementById("productModal").classList.add("show")}
 function closeProduct(){document.getElementById("productModal").classList.remove("show")}
@@ -269,8 +272,38 @@ if(tab==="customers"){root.innerHTML=`<span class="eyebrow">CUSTOMER RELATIONSHI
 if(tab==="settings"){root.innerHTML=`<span class="eyebrow">STORE CONFIGURATION</span><h1 class="admin-title">Settings</h1><div class="admin-panel"><h3>WhatsApp checkout</h3><p class="admin-muted">Current destination: +20 103 020 7079</p><label class="admin-muted">WhatsApp number (international format, digits only)<input id="settingWhatsapp" value="${localStorage.getItem("maximos_whatsapp")||"201030207079"}" style="display:block;width:100%;max-width:360px;margin:8px 0 15px;padding:11px;border:1px solid #ddd"></label><button class="admin-primary" onclick="saveWhatsapp()">SAVE NUMBER</button></div><div class="admin-note">Cloud database: Supabase. Admin access is controlled by Supabase Authentication and the is_admin profile flag. Create or change your password from Supabase Authentication.</div><button class="admin-action" onclick="exportBackup()">DOWNLOAD STORE BACKUP (JSON)</button>`}}
 function orderRow(o){return `<p style="font-size:11px;border-bottom:1px solid #eee;padding:8px 0">#${o.id} · ${esc(o.customer.name)} · ${fmt(o.total)} · <b>${o.status}</b></p>`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function openProductEditor(id){let p=products.find(x=>x.id===id);document.getElementById("productEditorForm").reset();document.getElementById("editProductId").value=p?.id||"";document.getElementById("editorTitle").textContent=p?"Edit product":"Add product";if(p){document.getElementById("editName").value=p.name;document.getElementById("editPrice").value=p.price;document.getElementById("editStock").value=p.stock??0;document.getElementById("editCategory").value=p.category||"Urban Casual";document.getElementById("editImage").value=p.images?.[0]||"";document.getElementById("editDescription").value=p.desc||""}document.getElementById("productEditorModal").classList.add("show")}
+function openProductEditor(id){let p=products.find(x=>x.id===id);document.getElementById("productEditorForm").reset();document.getElementById("imageUploadStatus").textContent="Choose an image from Gallery. It will upload automatically.";document.getElementById("editProductId").value=p?.id||"";document.getElementById("editorTitle").textContent=p?"Edit product":"Add product";if(p){document.getElementById("editName").value=p.name;document.getElementById("editPrice").value=p.price;document.getElementById("editStock").value=p.stock??0;document.getElementById("editCategory").value=p.category||"Urban Casual";document.getElementById("editImage").value=p.images?.[0]||"";document.getElementById("editDescription").value=p.desc||""}document.getElementById("productEditorModal").classList.add("show")}
 function closeProductEditor(){document.getElementById("productEditorModal").classList.remove("show")}
+async function uploadProductImage(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  const status=document.getElementById("imageUploadStatus");
+  const imageField=document.getElementById("editImage");
+  if(!file.type||!file.type.startsWith("image/")){
+    alert("Please choose an image file.");input.value="";return;
+  }
+  if(file.size>8*1024*1024){
+    alert("Image is too large. Please choose an image smaller than 8 MB.");input.value="";return;
+  }
+  input.disabled=true;
+  if(status)status.textContent="Uploading image... please wait";
+  try{
+    await ensureSupabase();
+    const cleanName=file.name.replace(/[^a-zA-Z0-9._-]/g,"-").slice(-90)||"product-image.jpg";
+    const filePath="products/"+Date.now()+"-"+cleanName;
+    const {data,error}=await supabaseClient.storage.from("product-images").upload(filePath,file,{cacheControl:"3600",upsert:false,contentType:file.type});
+    if(error)throw error;
+    const {data:publicData}=supabaseClient.storage.from("product-images").getPublicUrl(data.path);
+    if(!publicData?.publicUrl)throw new Error("Could not create a public image URL.");
+    imageField.value=publicData.publicUrl;
+    if(status)status.textContent="Image uploaded successfully. Save the product to keep it.";
+  }catch(err){
+    console.error("Product image upload failed:",err);
+    if(status)status.textContent="Upload failed. You can still paste an image URL.";
+    alert("Could not upload image: "+(err?.message||String(err))+"\nCheck that the product-images storage bucket allows authenticated uploads.");
+    input.value="";
+  }finally{input.disabled=false;}
+}
 async function saveAdminProduct(e){e.preventDefault();try{await ensureSupabase()}catch(err){alert(err.message||String(err));return}let id=document.getElementById("editProductId").value;let p=products.find(x=>String(x.id)===String(id));let image=document.getElementById("editImage").value||"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85";let data={name:document.getElementById("editName").value.trim(),price:Number(document.getElementById("editPrice").value),stock:Number(document.getElementById("editStock").value),category:document.getElementById("editCategory").value,desc:document.getElementById("editDescription").value,images:p?.images?.length?[image,...p.images.slice(1)]:[image,image,image,image],tag:p?.tag||"NEW"};if(p)Object.assign(p,data);else products.push({id:Math.max(0,...products.map(x=>Number(x.id)))+1,...data});const {error}=await supabaseClient.from("products").upsert(dbProduct(p||products[products.length-1]));if(error){alert("Could not save product: "+error.message);return}renderProducts();closeProductEditor();renderAdmin("products")}
 async function deleteAdminProduct(id){if(!confirm("Delete this product from the catalog?"))return;const {error}=await supabaseClient.from("products").update({active:false}).eq("id",id);if(error){alert("Could not delete product: "+error.message);return}let i=products.findIndex(p=>p.id===id);if(i>=0)products.splice(i,1);renderProducts();renderAdmin("products")}
 async function setOrderStatus(id,status){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;if(status==="Confirmed"&&!o.stock_deducted){const {error}=await supabaseClient.rpc("confirm_maximos_order",{p_order_id:Number(id)});if(error){alert("Could not confirm order/update stock: "+error.message);return}o.stock_deducted=true;for(const item of o.items){const p=products.find(x=>Number(x.id)===Number(item.id));if(p)p.stock=Math.max(0,Number(p.stock||0)-Number(item.qty||1))}}else{const {error}=await supabaseClient.from("orders").update({status}).eq("id",id);if(error){alert("Could not update order: "+error.message);return}}o.status=status;renderAdmin("orders")}
