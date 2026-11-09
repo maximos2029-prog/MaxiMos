@@ -90,25 +90,50 @@
 <div class="wide"><button class="admin-primary" type="submit">SAVE PRODUCT</button></div>
 </form></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2';document.head.appendChild(s);"></script>
 <script>
 const SUPABASE_URL="https://rrkqypxztqbidjdsnzqq.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_vGtC0pBBWT7ACjD-fk-xlw_GQiK9etj";
 let supabase = null;
-async function ensureSupabase(){
-  if(supabase) return supabase;
-  if(!window.supabase?.createClient){
-    await new Promise((resolve,reject)=>{
-      const script=document.createElement("script");
-      script.src="https://unpkg.com/@supabase/supabase-js@2";
-      script.onload=resolve;
-      script.onerror=()=>reject(new Error("تعذر تحميل مكتبة الاتصال من المصدر الاحتياطي. تأكد من الإنترنت."));
-      document.head.appendChild(script);
-    });
-  }
-  if(!window.supabase?.createClient) throw new Error("مكتبة Supabase غير متاحة. تأكد من اتصال الإنترنت.");
-  supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-  return supabase;
+let supabaseInitPromise = null;
+
+// Load Supabase reliably before any database operation.
+// The previous version created the client immediately, which could leave it null
+// when the CDN script had not finished loading yet.
+function ensureSupabase(){
+  if(supabase) return Promise.resolve(supabase);
+  if(supabaseInitPromise) return supabaseInitPromise;
+  supabaseInitPromise = (async()=>{
+    if(!window.supabase?.createClient){
+      const sources = [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+        "https://unpkg.com/@supabase/supabase-js@2"
+      ];
+      let loaded = false;
+      for(const url of sources){
+        try{
+          await new Promise((resolve,reject)=>{
+            const script=document.createElement("script");
+            script.src=url;
+            script.async=true;
+            script.onload=resolve;
+            script.onerror=()=>reject(new Error("Could not load "+url));
+            document.head.appendChild(script);
+          });
+          if(window.supabase?.createClient){ loaded=true; break; }
+        }catch(error){ console.warn("Supabase CDN failed:",url,error); }
+      }
+      if(!loaded && !window.supabase?.createClient){
+        throw new Error("تعذر تحميل مكتبة Supabase. تأكد من الإنترنت وافتح الموقع في Chrome.");
+      }
+    }
+    supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    return supabase;
+  })().catch(error=>{
+    supabaseInitPromise=null;
+    throw error;
+  });
+  return supabaseInitPromise;
 }
 const products=[
 {id:1,name:"Essential Heavyweight Tee",price:650,tag:"BEST SELLER",images:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1586790170083-2f9ce1f8f7e?auto=format&fit=crop&w=900&q=85"],desc:"A refined everyday essential made for comfort and a clean silhouette. Premium-feel cotton with an easy, versatile fit."},
@@ -222,7 +247,7 @@ function closeAdmin(){
   document.getElementById("adminShell").classList.remove("show");
   document.body.style.overflow="";
 }
-async function adminLogin(){try{await ensureSupabase()}catch(e){alert(e.message);return}const email=document.getElementById("adminEmail").value.trim();const password=document.getElementById("adminPassword").value;if(!email||!password){alert("Enter your admin email and password.");return}const {data,error}=await supabase.auth.signInWithPassword({email,password});if(error){alert("Login failed: "+error.message);return}adminUser=data.user;const {data:profile,error:profileError}=await supabase.from("profiles").select("is_admin").eq("id",adminUser.id).single();if(profileError||!profile?.is_admin){await supabase.auth.signOut();adminUser=null;alert("This account is not authorized as a MaxiMos administrator. Complete the admin setup SQL first.");return}try{await loadAdminData()}catch(e){alert("Could not load cloud data: "+e.message);return}adminAuthenticated=true;document.getElementById("adminLoginView").style.display="none";document.getElementById("adminAppView").style.display="grid";document.getElementById("adminPassword").value="";renderAdmin("overview")}
+async function adminLogin(){try{await ensureSupabase()}catch(e){alert(e.message||String(e));return}const email=document.getElementById("adminEmail").value.trim();const password=document.getElementById("adminPassword").value;if(!email||!password){alert("Enter your admin email and password.");return}const {data,error}=await supabase.auth.signInWithPassword({email,password});if(error){alert("Login failed: "+error.message);return}adminUser=data.user;const {data:profile,error:profileError}=await supabase.from("profiles").select("is_admin").eq("id",adminUser.id).single();if(profileError||!profile?.is_admin){await supabase.auth.signOut();adminUser=null;alert("This account is not authorized as a MaxiMos administrator. Complete the admin setup SQL first.");return}try{await loadAdminData()}catch(e){alert("Could not load cloud data: "+e.message);return}adminAuthenticated=true;document.getElementById("adminLoginView").style.display="none";document.getElementById("adminAppView").style.display="grid";document.getElementById("adminPassword").value="";renderAdmin("overview")}
 async function adminLogout(){await supabase.auth.signOut();adminAuthenticated=false;adminUser=null;document.getElementById("adminAppView").style.display="none";document.getElementById("adminLoginView").style.display="block"}
 function showAdminTab(tab){document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));renderAdmin(tab)}
 function renderAdmin(tab){if(!adminAuthenticated)return;const root=document.getElementById("adminContent");if(tab==="content"){renderStoreContentEditor();return}if(tab==="settings"){renderStoreSettings();return}if(tab==="overview"){let revenue=orders.filter(o=>o.status==="Delivered").reduce((s,o)=>s+o.total,0);root.innerHTML=`<span class="eyebrow">STORE PERFORMANCE</span><h1 class="admin-title">Overview</h1><p class="admin-muted">Live cloud data shared across your authorized devices.</p><div class="admin-stats"><div class="admin-stat"><span>PRODUCTS</span><strong>${products.length}</strong></div><div class="admin-stat"><span>ORDERS</span><strong>${orders.length}</strong></div><div class="admin-stat"><span>CUSTOMERS</span><strong>${customers.length}</strong></div><div class="admin-stat"><span>DELIVERED SALES</span><strong>${fmt(revenue)}</strong></div></div><div class="admin-panel"><h3>Recent orders</h3>${orders.length?orders.slice(-5).reverse().map(orderRow).join(""):'<p class="admin-muted">No orders yet. Orders placed through this browser will appear here.</p>'}</div><div class="admin-panel"><h3>Stock alerts</h3>${products.filter(p=>Number(p.stock)<=5).map(p=>`<p class="admin-muted">${esc(p.name)} — <b>${p.stock} left</b></p>`).join("")||'<p class="admin-muted">All products have more than 5 units in stock.</p>'}</div>`}
@@ -234,7 +259,7 @@ function orderRow(o){return `<p style="font-size:11px;border-bottom:1px solid #e
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function openProductEditor(id){let p=products.find(x=>x.id===id);document.getElementById("productEditorForm").reset();document.getElementById("editProductId").value=p?.id||"";document.getElementById("editorTitle").textContent=p?"Edit product":"Add product";if(p){document.getElementById("editName").value=p.name;document.getElementById("editPrice").value=p.price;document.getElementById("editStock").value=p.stock??0;document.getElementById("editCategory").value=p.category||"Urban Casual";document.getElementById("editImage").value=p.images?.[0]||"";document.getElementById("editDescription").value=p.desc||""}document.getElementById("productEditorModal").classList.add("show")}
 function closeProductEditor(){document.getElementById("productEditorModal").classList.remove("show")}
-async function saveAdminProduct(e){e.preventDefault();let id=document.getElementById("editProductId").value;let p=products.find(x=>String(x.id)===String(id));let image=document.getElementById("editImage").value||"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85";let data={name:document.getElementById("editName").value.trim(),price:Number(document.getElementById("editPrice").value),stock:Number(document.getElementById("editStock").value),category:document.getElementById("editCategory").value,desc:document.getElementById("editDescription").value,images:p?.images?.length?[image,...p.images.slice(1)]:[image,image,image,image],tag:p?.tag||"NEW"};if(p)Object.assign(p,data);else products.push({id:Math.max(0,...products.map(x=>Number(x.id)))+1,...data});const {error}=await supabase.from("products").upsert(dbProduct(p||products[products.length-1]));if(error){alert("Could not save product: "+error.message);return}renderProducts();closeProductEditor();renderAdmin("products")}
+async function saveAdminProduct(e){e.preventDefault();try{await ensureSupabase()}catch(err){alert(err.message||String(err));return}let id=document.getElementById("editProductId").value;let p=products.find(x=>String(x.id)===String(id));let image=document.getElementById("editImage").value||"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=85";let data={name:document.getElementById("editName").value.trim(),price:Number(document.getElementById("editPrice").value),stock:Number(document.getElementById("editStock").value),category:document.getElementById("editCategory").value,desc:document.getElementById("editDescription").value,images:p?.images?.length?[image,...p.images.slice(1)]:[image,image,image,image],tag:p?.tag||"NEW"};if(p)Object.assign(p,data);else products.push({id:Math.max(0,...products.map(x=>Number(x.id)))+1,...data});const {error}=await supabase.from("products").upsert(dbProduct(p||products[products.length-1]));if(error){alert("Could not save product: "+error.message);return}renderProducts();closeProductEditor();renderAdmin("products")}
 async function deleteAdminProduct(id){if(!confirm("Delete this product from the catalog?"))return;const {error}=await supabase.from("products").update({active:false}).eq("id",id);if(error){alert("Could not delete product: "+error.message);return}let i=products.findIndex(p=>p.id===id);if(i>=0)products.splice(i,1);renderProducts();renderAdmin("products")}
 async function setOrderStatus(id,status){let o=orders.find(x=>String(x.id)===String(id));if(!o)return;if(status==="Confirmed"&&!o.stock_deducted){const {error}=await supabase.rpc("confirm_maximos_order",{p_order_id:Number(id)});if(error){alert("Could not confirm order/update stock: "+error.message);return}o.stock_deducted=true;for(const item of o.items){const p=products.find(x=>Number(x.id)===Number(item.id));if(p)p.stock=Math.max(0,Number(p.stock||0)-Number(item.qty||1))}}else{const {error}=await supabase.from("orders").update({status}).eq("id",id);if(error){alert("Could not update order: "+error.message);return}}o.status=status;renderAdmin("orders")}
 function viewOrder(id){let o=orders.find(x=>String(x.id)===String(id));if(o)alert(`Order #${o.id}\nCustomer: ${o.customer.name}\nPhone: ${o.customer.phone}\nAddress: ${o.customer.address}\n\n${o.items.map(x=>`${x.name} / ${x.size} / ${x.color} x${x.qty}`).join("\n")}\n\nTotal: ${fmt(o.total)}`)}
@@ -243,7 +268,7 @@ function csvDownload(name,rows){let csv=rows.map(r=>r.map(v=>'"'+String(v??"").r
 function exportOrders(){csvDownload("maximos-orders.csv",[["Order","Customer","Phone","Address","Date","Total","Status"],...orders.map(o=>[o.id,o.customer.name,o.customer.phone,o.customer.address,o.createdAt,o.total,o.status])])}
 function exportCustomers(){csvDownload("maximos-customers.csv",[["Name","Phone","Address"],...customers.map(c=>[c.name,c.phone,c.address])])}
 function exportBackup(){let data={products,orders,customers};let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="maximos-backup.json";a.click();URL.revokeObjectURL(a.href)}
-async function recordOrder(items){try{await ensureSupabase()}catch(e){alert(e.message);return null}let name=prompt("Customer name:");if(!name)return null;let phone=prompt("Customer phone number:");if(!phone)return null;let address=prompt("Delivery address:");if(!address)return null;let total=items.reduce((s,x)=>s+x.price*x.qty,0);const customer={name,phone,address};const {error:customerError}=await supabase.from("customers").insert(customer);if(customerError&&customerError.code!=="23505"){alert("Could not save customer details: "+customerError.message);return null}const {error}=await supabase.from("orders").insert({customer,items:JSON.parse(JSON.stringify(items)),total,status:"New"});if(error){alert("Could not save your order online: "+error.message);return null}const order={id:"pending-"+Date.now(),createdAt:new Date().toISOString(),customer,items:JSON.parse(JSON.stringify(items)),total,status:"New",stock_deducted:false};orders.push(order);if(!customers.some(c=>c.phone===phone))customers.push(customer);return order}
+async function recordOrder(items){try{await ensureSupabase()}catch(e){alert(e.message||String(e));return null}let name=prompt("Customer name:");if(!name)return null;let phone=prompt("Customer phone number:");if(!phone)return null;let address=prompt("Delivery address:");if(!address)return null;let total=items.reduce((s,x)=>s+x.price*x.qty,0);const customer={name,phone,address};const {error:customerError}=await supabase.from("customers").insert(customer);if(customerError&&customerError.code!=="23505"){alert("Could not save customer details: "+customerError.message);return null}const {error}=await supabase.from("orders").insert({customer,items:JSON.parse(JSON.stringify(items)),total,status:"New"});if(error){alert("Could not save your order online: "+error.message);return null}const order={id:"pending-"+Date.now(),createdAt:new Date().toISOString(),customer,items:JSON.parse(JSON.stringify(items)),total,status:"New",stock_deducted:false};orders.push(order);if(!customers.some(c=>c.phone===phone))customers.push(customer);return order}
 
 renderProducts();updateCart();loadPublicProducts();
 </script>
