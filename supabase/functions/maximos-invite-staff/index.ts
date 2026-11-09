@@ -17,7 +17,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   try {
     const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.replace(/^Bearer\\s+/i, "");
+    const token = authHeader.replace(/^Bearer\s+/i, "");
     if (!token) return new Response(JSON.stringify({ error: "Authentication required" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const url = Deno.env.get("SUPABASE_URL") || "";
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -34,7 +34,7 @@ Deno.serve(async (req: Request) => {
     const email = String(body.email || "").trim().toLowerCase();
     const displayName = String(body.display_name || "").trim();
     const role = String(body.role || "staff").trim();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return new Response(JSON.stringify({ error: "Enter a valid email address." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return new Response(JSON.stringify({ error: "Enter a valid email address." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const permissions: Record<string, boolean> = {};
     for (const key of Array.isArray(body.permissions) ? body.permissions : []) if (allowed.has(String(key))) permissions[String(key)] = true;
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, { data: { display_name: displayName, invited_for: "maximos_staff" } });
