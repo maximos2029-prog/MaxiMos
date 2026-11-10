@@ -755,6 +755,7 @@ function applyStoreSettings(){
  const footerLogo=document.getElementById("footerLogoImage");if(footerLogo&&storeSettings.footerLogo)footerLogo.src=storeSettings.footerLogo;
  const footerLinkKeys=[["footerQuick1","footerQuickUrl1"],["footerQuick2","footerQuickUrl2"],["footerQuick3","footerQuickUrl3"],["footerQuick4","footerQuickUrl4"],["footerService1","footerServiceUrl1"],["footerService2","footerServiceUrl2"],["footerService3","footerServiceUrl3"],["footerService4","footerServiceUrl4"]];
  footerLinkKeys.forEach(([labelKey,urlKey],i)=>{const a=document.getElementById("footerLink"+(i+1));if(a){a.textContent=storeSettings[labelKey]||"";a.href=storeSettings[urlKey]||"#";a.hidden=!String(storeSettings[labelKey]||"").trim()}});
+ const returnsPolicyLink=document.getElementById("footerLink6");if(returnsPolicyLink){returnsPolicyLink.href="#returns-policy";returnsPolicyLink.hidden=false}
  const contactLine=document.getElementById("footerContactPhone");if(contactLine){contactLine.textContent=storeSettings.whatsapp||"201030207079"}
  const wa=document.querySelectorAll('.footer a[aria-label="WhatsApp"]');
  const links=document.querySelectorAll(".social a[data-social]");["instagram","facebook","tiktok"].forEach((key,i)=>{const a=links[i],savedUrl=String(storeSettings[key]||"").trim(),url=savedUrl||String(DEFAULT_STORE_SETTINGS[key]||"").trim();if(!a)return;if(/^https:\/\//i.test(url)){a.href=url;a.target="_blank";a.rel="noopener";a.hidden=false}else{a.removeAttribute("href");a.hidden=true}});
