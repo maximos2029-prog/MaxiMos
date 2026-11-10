@@ -514,7 +514,7 @@ body.maxi-menu-open{overflow:hidden}
 </div>
 
 <div class="overlay" id="cartOverlay" onclick="if(event.target===this)closeCart()"><aside class="drawer"><div class="drawer-head"><h3>سلة التسوق</h3><button class="close" onclick="closeCart()">×</button></div><div id="cartItems"></div><div class="cart-total"><span>المجموع الفرعي</span><span id="cartTotal">0 EGP</span></div><button class="btn whatsapp full" onclick="checkout()">إتمام الطلب →</button><p class="sub" id="cartPaymentNote">الدفع عند الاستلام. يتم تأكيد مصاريف الشحن قبل إرسال الطلب.</p></aside></div>
-<div class="modal" id="checkoutModal"><div class="modal-box checkout-box" dir="rtl"><button class="close checkout-close" onclick="closeCheckout()">×</button><div class="checkout-brand">MaxiMus</div><div class="checkout-layout"><aside class="checkout-summary-panel"><h3>ملخص الطلب</h3><div id="checkoutLineItems"></div><div class="checkout-totals"><div><span>الإجمالي الفرعي</span><b id="checkoutSubtotal">0 EGP</b></div><div><span>الشحن</span><b id="checkoutShipping">يتم التأكيد على واتساب</b></div><div class="checkout-grand"><span>الإجمالي</span><b id="checkoutGrandTotal">0 EGP</b></div></div></aside><section class="checkout-main"><span class="eyebrow">إتمام الشراء</span><h2 class="admin-title">معلومات الاتصال</h2><form id="checkoutForm" class="checkout-form" onsubmit="submitCheckout(event)"><label class="checkout-wide">البريد الإلكتروني (اختياري)<input name="email" type="email" autocomplete="email" placeholder="name@example.com"></label><div class="checkout-heading checkout-wide">التوصيل</div><label class="checkout-wide">الدولة / المنطقة<select name="country" required><option value="مصر" selected>مصر</option></select></label><label>الاسم الأول<input name="first_name" autocomplete="given-name" required maxlength="60"></label><label>اسم العائلة<input name="last_name" autocomplete="family-name" required maxlength="60"></label><label class="checkout-wide">العنوان بالتفصيل<input name="street_address" autocomplete="street-address" required maxlength="250" placeholder="الشارع، رقم العقار، الدور، الشقة"></label><label>المدينة<input name="city" required maxlength="80"></label><label>المحافظة<input name="governorate" required maxlength="80" placeholder="مثال: كفر الشيخ"></label><label>الرمز البريدي (اختياري)<input name="postal_code" inputmode="numeric" maxlength="12"></label><label>رقم الهاتف<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="01xxxxxxxxx"></label><label class="checkout-wide checkout-check"><input type="checkbox" name="save_info" value="yes"> حفظ بياناتي لتسهيل الطلب القادم على هذا الجهاز</label><div class="checkout-heading checkout-wide">طريقة الشحن</div><label class="checkout-wide checkout-shipping-choice"><input type="radio" name="shipping_method" value="Standard Shipping" checked><span><b>Standard Shipping</b><small>شحن لجميع المحافظات — المدة والتكلفة يتم تأكيدهما قبل إرسال الطلب</small></span><strong id="checkoutShippingChoicePrice">يتم التأكيد</strong></label><label class="checkout-wide">منطقة التوصيل<select name="shipping_zone_id" id="checkoutShippingZone"><option value="">اختر المنطقة إن كانت متاحة</option></select></label><div class="checkout-heading checkout-wide">طريقة الدفع</div><label class="checkout-wide checkout-payment-choice"><input type="radio" name="paymentMethod" value="Cash on delivery" checked><span><b>الدفع عند الاستلام (COD)</b><small>ادفع قيمة طلبك عند وصوله</small></span></label><div class="checkout-wide checkout-note" id="checkoutSummary">راجع بياناتك وملخص طلبك قبل التأكيد.</div><button class="checkout-submit checkout-wide" type="submit">تأكيد الطلب والمتابعة إلى واتساب</button></form></section></div></div></div>
+<div class="modal" id="checkoutModal"><div class="modal-box checkout-box" dir="rtl"><button class="close checkout-close" onclick="closeCheckout()">×</button><div class="checkout-brand">MaxiMus</div><div class="checkout-layout"><aside class="checkout-summary-panel"><h3>ملخص الطلب</h3><div id="checkoutLineItems"></div><div class="checkout-totals"><div><span>الإجمالي الفرعي</span><b id="checkoutSubtotal">0 EGP</b></div><div><span>الشحن</span><b id="checkoutShipping">يتم التأكيد على واتساب</b></div><div class="checkout-grand"><span>الإجمالي</span><b id="checkoutGrandTotal">0 EGP</b></div></div></aside><section class="checkout-main"><span class="eyebrow">إتمام الشراء</span><h2 class="admin-title">معلومات الاتصال</h2><form id="checkoutForm" class="checkout-form" onsubmit="submitCheckout(event)"><label class="checkout-wide">البريد الإلكتروني (اختياري)<input name="email" type="email" autocomplete="email" placeholder="name@example.com"></label><div class="checkout-heading checkout-wide">التوصيل</div><label class="checkout-wide">الدولة / المنطقة<select name="country" required><option value="مصر" selected>مصر</option></select></label><label>الاسم الأول<input name="first_name" autocomplete="given-name" required maxlength="60"></label><label>اسم العائلة<input name="last_name" autocomplete="family-name" required maxlength="60"></label><label class="checkout-wide">العنوان بالتفصيل<input name="street_address" autocomplete="street-address" required maxlength="250" placeholder="الشارع، رقم العقار، الدور، الشقة"></label><label>المدينة<input name="city" required maxlength="80"></label><label>المحافظة<input name="governorate" required maxlength="80" placeholder="مثال: كفر الشيخ"></label><label>الرمز البريدي (اختياري)<input name="postal_code" inputmode="numeric" maxlength="12"></label><label>رقم الهاتف<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="01xxxxxxxxx"></label><label class="checkout-wide checkout-check"><input type="checkbox" name="save_info" value="yes"> حفظ بياناتي لتسهيل الطلب القادم على هذا الجهاز</label><div class="checkout-heading checkout-wide">طريقة الشحن</div><label class="checkout-wide checkout-shipping-choice"><input type="radio" name="shipping_method" value="Standard Shipping" checked><span><b>Standard Shipping</b><small>شحن لجميع المحافظات — المدة والتكلفة يتم تأكيدهما قبل إرسال الطلب</small></span><strong id="checkoutShippingChoicePrice">يتم التأكيد</strong></label><div class="checkout-heading checkout-wide">طريقة الدفع</div><label class="checkout-wide checkout-payment-choice"><input type="radio" name="paymentMethod" value="Cash on delivery" checked><span><b>الدفع عند الاستلام (COD)</b><small>ادفع قيمة طلبك عند وصوله</small></span></label><div class="checkout-wide checkout-note" id="checkoutSummary">راجع بياناتك وملخص طلبك قبل التأكيد.</div><button class="checkout-submit checkout-wide" type="submit">تأكيد الطلب والمتابعة إلى واتساب</button></form></section></div></div></div>
 <div class="modal" id="productModal"><div class="modal-box"><button class="close" style="position:absolute;right:18px;top:12px;z-index:2" onclick="closeProduct()">×</button><div id="pdpContent"></div></div></div>
 
 <div class="admin-shell" id="adminShell">
@@ -1163,28 +1163,24 @@ setTimeout(maxiLoadStorefrontContent,900);
 </script>
 
 <script>
-let maxiCheckoutZones=[];
 async function maxiLoadCheckoutOptions(){
  try{
   await ensureSupabase();
-  const [z,p]=await Promise.all([
-   supabaseClient.from("shipping_zones").select("*").eq("active",true).order("sort_order"),
-   supabaseClient.from("payment_methods").select("*").eq("enabled",true).order("sort_order")
-  ]);
-  if(!z.error){maxiCheckoutZones=z.data||[];const sel=document.getElementById("checkoutShippingZone");if(sel)sel.innerHTML='<option value="">اختر منطقة التوصيل</option>'+maxiCheckoutZones.map(x=>'<option value="'+x.id+'">'+maxiEsc(x.name+' — '+x.governorate)+' ('+maximosMoney(x.fee)+')</option>').join("")}
+  const p=await supabaseClient.from("payment_methods").select("*").eq("enabled",true).order("sort_order");
   if(!p.error){const sel=document.getElementById("checkoutPaymentMethod");if(sel){const safe=(p.data||[]).filter(x=>!x.is_online);sel.innerHTML='<option value="Cash on delivery">الدفع عند الاستلام</option>'+safe.map(x=>'<option value="'+maxiEsc(x.name)+'">'+maxiEsc(x.name)+'</option>').join("")}}
- }catch(e){console.warn("Checkout continues with the existing shipping and cash-on-delivery settings.",e)}
+ }catch(e){console.warn("Checkout continues with cash-on-delivery settings.",e)}
 }
 async function checkout(){
  if(!cart.length){alert("سلة التسوق فارغة.");return}
  await maxiLoadCheckoutOptions();
  const subtotal=cart.reduce((s,x)=>s+Number(x.price)*Number(x.qty),0);
- const zoneId=document.getElementById("checkoutShippingZone")?.value;
- const zone=maxiCheckoutZones.find(z=>String(z.id)===String(zoneId));
- const legacy=shippingQuote(subtotal);
- const fee=zone?(zone.free_shipping_threshold&&subtotal>=Number(zone.free_shipping_threshold)?0:Number(zone.fee||0)):legacy;
- document.getElementById("checkoutShipping").value=fee===null?"يتم التأكيد على واتساب":fee===0?"مجاني":maximosMoney(fee);
- document.getElementById("checkoutSummary").textContent="المنتجات: "+maximosMoney(subtotal)+" | الشحن: "+(fee===null?"يتم التأكيد":fee===0?"مجاني":maximosMoney(fee))+" | Total: "+maximosMoney(subtotal+(fee||0))+(fee===null?" (الشحن غير مضاف حتى التأكيد)":"");
+ const fee=shippingQuote(subtotal);
+ const shippingText=fee===null?"يتم التأكيد على واتساب":fee===0?"مجاني":maximosMoney(fee);
+ document.getElementById("checkoutShipping").textContent=shippingText;
+ const choicePrice=document.getElementById("checkoutShippingChoicePrice");if(choicePrice)choicePrice.textContent=shippingText;
+ document.getElementById("checkoutSubtotal").textContent=maximosMoney(subtotal);
+ document.getElementById("checkoutGrandTotal").textContent=maximosMoney(subtotal+(fee||0));
+ document.getElementById("checkoutSummary").textContent="المنتجات: "+maximosMoney(subtotal)+" | الشحن: "+(fee===null?"يتم التأكيد":fee===0?"مجاني":maximosMoney(fee))+" | الإجمالي: "+maximosMoney(subtotal+(fee||0))+(fee===null?" (الشحن غير مضاف حتى التأكيد)":"");
  document.getElementById("checkoutModal").classList.add("show");
 }
 async function recordOrder(items,details){
@@ -1193,18 +1189,15 @@ async function recordOrder(items,details){
  if(!name||!phone||!address){alert("من فضلك استكمل الاسم ورقم الموبايل وعنوان التوصيل.");return null}
  for(const item of items){const p=products.find(x=>Number(x.id)===Number(item.id));if(!p||Number(p.stock)<Number(item.qty)){alert("الكمية المتاحة اتغيرت للمنتج "+(item.name||"")+"، حدّث السلة وحاول تاني.");return null}}
  const subtotal=items.reduce((s,x)=>s+Number(x.price)*Number(x.qty),0);
- const zone=maxiCheckoutZones.find(z=>String(z.id)===String(details.shipping_zone_id));
- if(maxiCheckoutZones.length&&!zone){alert("من فضلك اختار منطقة التوصيل.");return null}
- const legacy=shippingQuote(subtotal);
- const fee=zone?(zone.free_shipping_threshold&&subtotal>=Number(zone.free_shipping_threshold)?0:Number(zone.fee||0)):legacy;
+ const fee=shippingQuote(subtotal);
  const total=subtotal+(fee===null?0:fee);
  const paymentMethod=String(details.paymentMethod||"Cash on delivery");
  if(paymentMethod!=="Cash on delivery"){const allowed=await supabaseClient.from("payment_methods").select("id,is_online").eq("name",paymentMethod).eq("enabled",true).maybeSingle();if(allowed.error||!allowed.data||allowed.data.is_online){alert("طريقة الدفع دي غير متاحة حاليًا. اختار الدفع عند الاستلام.");return null}}
- const customer={name,phone,address,payment_method:paymentMethod,shipping_fee:fee,shipping_status:fee===null?"To be confirmed":"Calculated",shipping_zone:zone?.name||null};
+ const customer={name,phone,address,payment_method:paymentMethod,shipping_fee:fee,shipping_status:fee===null?"To be confirmed":"Calculated",shipping_zone:null};
  const {error:customerError}=await supabaseClient.from("customers").insert({name,phone,address});
  if(customerError&&customerError.code!=="23505"){alert("تعذر حفظ بيانات العميل: "+customerError.message);return null}
  const orderItems=JSON.parse(JSON.stringify(items));
- const {error}=await supabaseClient.from("orders").insert({customer,items:orderItems,subtotal,shipping_fee:fee??0,total,status:"New",payment_method:paymentMethod,payment_status:"pending",shipping_zone_id:zone?.id||null});
+ const {error}=await supabaseClient.from("orders").insert({customer,items:orderItems,subtotal,shipping_fee:fee??0,total,status:"New",payment_method:paymentMethod,payment_status:"pending"});
  if(error){alert("تعذر حفظ الطلب: "+error.message);return null}
  // Public checkout may INSERT orders but must not SELECT private customer/order records.
  const order={id:"Submitted",createdAt:new Date().toISOString(),customer,items:orderItems,total,subtotal,shipping_fee:fee,status:"New",stock_deducted:false,payment_method:paymentMethod};
