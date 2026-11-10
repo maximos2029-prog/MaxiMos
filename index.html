@@ -130,6 +130,21 @@
 @media(max-width:850px){.hero-copy{width:72%;padding:62px 5vw;min-height:470px}}
 @media(max-width:600px){.hero{min-height:460px;display:flex;align-items:flex-end}.hero:before{background:linear-gradient(0deg,rgba(12,19,16,.92) 0%,rgba(12,19,16,.45) 58%,rgba(12,19,16,.08) 100%)}.hero-copy{width:100%;min-height:460px;padding:42px 22px 35px;justify-content:flex-end}.hero h1{font-size:42px;letter-spacing:-1.4px}.hero p{font-size:12px;max-width:340px}.hero-image{background-position:58% center}}
 
+
+/* Centered stacked MaxiMos identity: symbol above wordmark */
+.header{height:104px}
+.header .brand-home{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px!important;line-height:1;text-decoration:none}
+.header .brand-home .brand-mark{display:block;width:48px;height:48px;flex:0 0 48px;object-fit:contain;border-radius:0;box-shadow:none;background:transparent}
+.header .brand-home .brandname{display:block;margin:0;font-size:13px;line-height:1;letter-spacing:2.4px;text-align:center}
+.header .brand-home .brandname small{display:block;margin-top:3px;font-size:6px;line-height:1;letter-spacing:1.35px;text-align:center}
+@media(max-width:600px){
+ .header{height:82px}
+ .header .brand-home{gap:2px!important}
+ .header .brand-home .brand-mark{width:39px;height:39px;flex-basis:39px}
+ .header .brand-home .brandname{font-size:11px;letter-spacing:2px}
+ .header .brand-home .brandname small{font-size:5px;letter-spacing:1.1px;margin-top:2px}
+}
+
 </style>
 </head>
 <body>
