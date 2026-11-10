@@ -402,12 +402,21 @@ body{direction:rtl;text-align:right}.brand,.brand-home,.brandname,.nav,.head-act
 .maxi-menu-links span{color:#777}
 .maxi-menu-language strong{font-size:11px;font-weight:500;color:#666}
 body.maxi-menu-open{overflow:hidden}
+/* Keep the side-menu control available on desktop browsers and mobile */
+.header .head-actions .menu-trigger{display:grid;place-items:center;width:42px;height:42px;padding:0;font-size:21px;flex:0 0 42px;border-radius:50%;transition:background .2s ease}
+.header .head-actions .menu-trigger:hover{background:#eeece5}
+.maxi-menu-drawer{width:min(390px, min(88vw, 420px))}
 @media(max-width:600px){
  .header .head-actions{display:flex;align-items:center;gap:5px}
- .header .head-actions .menu-trigger{display:grid;place-items:center;width:40px;height:40px;padding:0;font-size:21px;grid-column:1}
+ .header .head-actions .menu-trigger{width:40px;height:40px;font-size:21px;flex:0 0 40px}
  .header .head-actions .admin-open{display:none}
 }
-@media(min-width:601px){.menu-trigger{display:none!important}}
+@media(min-width:601px){
+ .header .head-actions .menu-trigger{margin-inline-start:4px}
+ .maxi-menu-heading{height:60px}
+ .maxi-menu-category>button,.maxi-menu-links>a,.maxi-menu-links>button,.maxi-menu-language{min-height:52px;font-size:13px}
+ .maxi-menu-subitems button{font-size:12px;padding-top:12px;padding-bottom:12px}
+}
 
 </style>
 </head>
