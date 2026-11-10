@@ -611,6 +611,25 @@ body.maxi-menu-open{overflow:hidden}
  .feature p{font-size:8px!important}
 }
 
+
+/* MaxiMus contact page */
+.maxi-contact-page{display:block;background:#fff;min-height:calc(100vh - 250px);color:#292929}
+.maxi-contact-page[hidden]{display:none!important}
+.maxi-contact-wrap{box-sizing:border-box;max-width:1180px;margin:0 auto;padding:48px 28px 70px;min-height:600px}
+.maxi-contact-wrap h1{font-size:27px;font-weight:500;text-align:right;margin:0 0 14px;color:#242424}
+.maxi-contact-lead{font-size:13px;color:#777;text-align:right;margin:0 0 26px}
+.maxi-contact-form{width:min(100%,520px);margin:0 0 0 auto;display:flex;flex-direction:column;gap:9px}
+.maxi-contact-form label{font-size:12px;color:#666;margin-top:7px}
+.maxi-contact-form label span{color:#999}
+.maxi-contact-form input,.maxi-contact-form textarea{width:100%;box-sizing:border-box;border:1px solid #d3d3d3;border-radius:0;background:#fff;padding:12px 13px;font:inherit;font-size:13px;color:#222;outline:none}
+.maxi-contact-form input{height:45px}
+.maxi-contact-form textarea{min-height:155px;resize:vertical}
+.maxi-contact-form input:focus,.maxi-contact-form textarea:focus{border-color:#0b5558;box-shadow:0 0 0 2px #0b55581a}
+.maxi-contact-form button{width:100%;border:1px solid #242424;border-radius:28px;background:#242424;color:#fff;padding:13px 18px;font-size:13px;cursor:pointer;margin-top:10px;transition:background .2s}
+.maxi-contact-form button:hover{background:#064e56;border-color:#064e56}
+.maxi-contact-note{font-size:11px;color:#888;line-height:1.8;margin:2px 0 0;text-align:right}
+@media(max-width:700px){.maxi-contact-wrap{padding:34px 18px 50px;min-height:560px}.maxi-contact-wrap h1{font-size:23px}.maxi-contact-lead{font-size:12px}.maxi-contact-form{width:100%}.maxi-contact-form input{height:43px}.maxi-contact-form textarea{min-height:140px}}
+
 </style>
 </head>
 <body>
@@ -669,6 +688,24 @@ body.maxi-menu-open{overflow:hidden}
   <div class="returns-policy-contact"><strong>محتاج مساعدة؟</strong><p>تواصل مع فريق MaxiMus وسنساعدك في متابعة طلبك.</p><a href="https://wa.me/201030207079?text=مرحباً%20MaxiMus،%20أرغب%20في%20الاستفسار%20عن%20الاستبدال%20أو%20الاسترجاع" target="_blank" rel="noopener">تواصل معنا على واتساب ↗</a></div>
  </div>
 </section>
+<section class="maxi-contact-page" id="contactPage" dir="rtl" hidden>
+ <div class="maxi-contact-wrap">
+  <h1>تواصل معنا</h1>
+  <p class="maxi-contact-lead">يسعدنا نسمع منك. ابعتلنا رسالتك وفريق MaxiMus هيتواصل معاك في أقرب وقت.</p>
+  <form id="maxiContactForm" class="maxi-contact-form" onsubmit="return sendMaxiContact(event)">
+   <label for="contactName">الاسم <span>(مطلوب)</span></label>
+   <input id="contactName" name="name" type="text" autocomplete="name" placeholder="اكتب اسمك" required>
+   <label for="contactEmail">البريد الإلكتروني <span>(مطلوب)</span></label>
+   <input id="contactEmail" name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+   <label for="contactPhone">رقم الهاتف <span>(مطلوب)</span></label>
+   <input id="contactPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" required>
+   <label for="contactMessage">رسالتك <span>(مطلوب)</span></label>
+   <textarea id="contactMessage" name="message" rows="7" placeholder="اكتب رسالتك هنا..." required></textarea>
+   <button type="submit">إرسال الرسالة</button>
+   <p class="maxi-contact-note">بالضغط على إرسال، هتفتح رسالة واتساب جاهزة ببياناتك لفريق خدمة عملاء MaxiMus.</p>
+  </form>
+ </div>
+</section>
 <footer class="footer" dir="rtl">
  <div class="footer-main">
   <div class="footer-brand">
@@ -687,7 +724,7 @@ body.maxi-menu-open{overflow:hidden}
   </div>
   <div class="footer-column footer-service">
    <h4 id="footerServiceTitle">خدمة العملاء والسياسات</h4>
-   <a id="footerLink5" href="#shipping-faq">الشحن والتوصيل</a><a id="footerLink6" href="#returns-policy">سياسة الاستبدال والاسترجاع</a><a id="privacyPolicyLink" href="/privacy-policy.html">سياسة الخصوصية</a><a id="termsServiceLink" href="/terms-of-service.html">شروط الخدمة</a><a id="footerLink7" href="#faq">الأسئلة الشائعة</a><a id="footerLink8" class="footer-whatsapp" href="https://wa.me/201030207079" target="_blank" rel="noopener">تواصل معنا ↗</a>
+   <a id="footerLink5" href="#shipping-faq">الشحن والتوصيل</a><a id="footerLink6" href="#returns-policy">سياسة الاستبدال والاسترجاع</a><a id="privacyPolicyLink" href="/privacy-policy.html">سياسة الخصوصية</a><a id="termsServiceLink" href="/terms-of-service.html">شروط الخدمة</a><a id="footerLink7" href="#faq">الأسئلة الشائعة</a><a id="footerLink8" class="footer-whatsapp" href="#contact-page">تواصل معنا ↗</a>
   </div>
  </div>
  <section class="newsletter footer-newsletter"><div><h2 id="newsletterTitle">اختار إطلالتك بثقة.</h2><p id="newsletterText">تابعنا علشان توصلك أحدث المنتجات والعروض وكل جديد من MaxiMus.</p></div><a class="footer-newsletter-link" href="https://wa.me/201030207079?text=I%27d%20like%20to%20receive%20MaxiMus%20new%20arrival%20updates" target="_blank" rel="noopener"><span id="footerNewsletterButton">اشترك في تحديثاتنا على واتساب</span> <span>↗</span></a></section>
@@ -913,7 +950,7 @@ function applyStoreSettings(){
  const footerLogo=document.getElementById("footerLogoImage");if(footerLogo&&storeSettings.footerLogo)footerLogo.src=storeSettings.footerLogo;
  const footerLinkKeys=[["footerQuick1","footerQuickUrl1"],["footerQuick2","footerQuickUrl2"],["footerQuick3","footerQuickUrl3"],["footerQuick4","footerQuickUrl4"],["footerService1","footerServiceUrl1"],["footerService2","footerServiceUrl2"],["footerService3","footerServiceUrl3"],["footerService4","footerServiceUrl4"]];
  footerLinkKeys.forEach(([labelKey,urlKey],i)=>{const a=document.getElementById("footerLink"+(i+1));if(a){a.textContent=storeSettings[labelKey]||"";a.href=storeSettings[urlKey]||"#";a.hidden=!String(storeSettings[labelKey]||"").trim()}});
- const returnsPolicyLink=document.getElementById("footerLink6");if(returnsPolicyLink){returnsPolicyLink.href="/returns-policy.html";returnsPolicyLink.hidden=false}
+ const returnsPolicyLink=document.getElementById("footerLink6");if(returnsPolicyLink){returnsPolicyLink.href="/returns-policy.html";returnsPolicyLink.hidden=false}const contactPageLink=document.getElementById("footerLink8");if(contactPageLink){contactPageLink.href="#contact-page";contactPageLink.removeAttribute("target");contactPageLink.removeAttribute("rel")}
  const contactLine=document.getElementById("footerContactPhone");if(contactLine){contactLine.textContent=storeSettings.whatsapp||"201030207079"}
  const wa=document.querySelectorAll('.footer a[aria-label="WhatsApp"]');
  const links=document.querySelectorAll(".social a[data-social]");["instagram","facebook","tiktok"].forEach((key,i)=>{const a=links[i],savedUrl=String(storeSettings[key]||"").trim(),url=savedUrl||String(DEFAULT_STORE_SETTINGS[key]||"").trim();if(!a)return;if(/^https:\/\//i.test(url)){a.href=url;a.target="_blank";a.rel="noopener";a.hidden=false}else{a.removeAttribute("href");a.hidden=true}});
@@ -1495,7 +1532,36 @@ function maxiMenuSearch(){
  setTimeout(()=>document.getElementById("productSearch")?.focus(),350);
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
-\nfunction syncReturnsPolicyPage(){const isPolicy=location.hash==="#returns-policy";const main=document.querySelector("main");const page=document.getElementById("returnsPolicyPage");if(main)main.style.display=isPolicy?"none":"";if(page)page.hidden=!isPolicy;if(isPolicy){window.scrollTo(0,0)}}window.addEventListener("hashchange",syncReturnsPolicyPage);document.addEventListener("DOMContentLoaded",syncReturnsPolicyPage);syncReturnsPolicyPage();
+\n
+function syncMaxiStandalonePages(){
+ const isPolicy=location.hash==="#returns-policy";
+ const isContact=location.hash==="#contact-page";
+ const main=document.querySelector("main");
+ const policy=document.getElementById("returnsPolicyPage");
+ const contact=document.getElementById("contactPage");
+ if(main)main.style.display=(isPolicy||isContact)?"none":"";
+ if(policy)policy.hidden=!isPolicy;
+ if(contact)contact.hidden=!isContact;
+ if(isPolicy||isContact)window.scrollTo(0,0);
+}
+function sendMaxiContact(event){
+ event.preventDefault();
+ const form=document.getElementById("maxiContactForm");
+ if(!form||!form.reportValidity())return false;
+ const data=new FormData(form);
+ const name=String(data.get("name")||"").trim();
+ const email=String(data.get("email")||"").trim();
+ const phone=String(data.get("phone")||"").trim();
+ const message=String(data.get("message")||"").trim();
+ const text="رسالة جديدة من صفحة تواصل معنا - MaxiMus%0A"+"الاسم: "+name+"%0A"+"البريد الإلكتروني: "+email+"%0A"+"رقم الهاتف: "+phone+"%0A"+"الرسالة: "+message;
+ const number=String(storeSettings?.whatsapp||"201030207079").replace(/\D/g,"");
+ window.open("https://wa.me/"+number+"?text="+encodeURIComponent("رسالة جديدة من صفحة تواصل معنا - MaxiMus\nالاسم: "+name+"\nالبريد الإلكتروني: "+email+"\nرقم الهاتف: "+phone+"\nالرسالة: "+message),"_blank","noopener");
+ return false;
+}
+window.addEventListener("hashchange",syncMaxiStandalonePages);
+document.addEventListener("DOMContentLoaded",syncMaxiStandalonePages);
+syncMaxiStandalonePages();
+
 \n</script>
 
 </body></html>
