@@ -691,9 +691,10 @@ async function recordOrder(items,details){
  const {error:customerError}=await supabaseClient.from("customers").insert({name,phone,address});
  if(customerError&&customerError.code!=="23505"){alert("Could not save customer details: "+customerError.message);return null}
  const orderItems=JSON.parse(JSON.stringify(items));
- const {data:created,error}=await supabaseClient.from("orders").insert({customer,items:orderItems,subtotal,shipping_fee:fee??0,total,status:"New",payment_method:paymentMethod,payment_status:"pending",shipping_zone_id:zone?.id||null}).select("id,created_at").single();
+ const {error}=await supabaseClient.from("orders").insert({customer,items:orderItems,subtotal,shipping_fee:fee??0,total,status:"New",payment_method:paymentMethod,payment_status:"pending",shipping_zone_id:zone?.id||null});
  if(error){alert("Could not save your order online: "+error.message);return null}
- const order={id:String(created.id),createdAt:created.created_at,customer,items:orderItems,total,subtotal,shipping_fee:fee,status:"New",stock_deducted:false,payment_method:paymentMethod};
+ // Public checkout may INSERT orders but must not SELECT private customer/order records.
+ const order={id:"Submitted",createdAt:new Date().toISOString(),customer,items:orderItems,total,subtotal,shipping_fee:fee,status:"New",stock_deducted:false,payment_method:paymentMethod};
  orders.unshift(order);if(!customers.some(c=>c.phone===phone))customers.push({name,phone,address});return order;
 }
 setTimeout(maxiLoadCheckoutOptions,1200);
