@@ -787,16 +787,7 @@ async function openAdmin(){
 }
 // Explicitly expose the admin opener for mobile browsers and inline handlers.
 window.openAdmin = openAdmin;
-window.addEventListener("DOMContentLoaded",()=>{
-  const adminButton=document.querySelector(".admin-open");
-  if(adminButton){
-    adminButton.type="button";
-    adminButton.addEventListener("click",(event)=>{
-      event.preventDefault();
-      window.openAdmin();
-    });
-  }
-});
+/* The header button already calls window.openAdmin() inline. Avoid attaching a second click handler. */
 function closeAdmin(){
   document.getElementById("adminShell").classList.remove("show");
   document.body.style.overflow="";
@@ -882,9 +873,10 @@ renderProducts();updateCart();loadPublicProducts();
 /* Define permission state before any admin login/render callbacks can use it. */
 window.maxiIsAdmin=false;
 window.maxiUserPermissions={};
-window.maxiCan=function(permission){
+function maxiCan(permission){
  return window.maxiIsAdmin===true || window.maxiUserPermissions?.[permission]===true;
-};
+}
+window.maxiCan=maxiCan;
 
 let adminOrderQuery="",adminOrderStatus="All",adminProductQuery="";
 function maximosMoney(n){return fmt(Number(n)||0)}
