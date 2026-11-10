@@ -1336,6 +1336,7 @@ function maxiMenuSearch(){
  setTimeout(()=>document.getElementById("productSearch")?.focus(),350);
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
-\nfunction syncReturnsPolicyPage(){const isPolicy=location.hash==="#returns-policy";const main=document.querySelector("main");const page=document.getElementById("returnsPolicyPage");if(main)main.style.display=isPolicy?"none":"";if(page)page.hidden=!isPolicy;if(isPolicy){window.scrollTo(0,0)}}window.addEventListener("hashchange",syncReturnsPolicyPage);document.addEventListener("DOMContentLoaded",syncReturnsPolicyPage);syncReturnsPolicyPage();\n</script>
+\nfunction syncReturnsPolicyPage(){const isPolicy=location.hash==="#returns-policy";const main=document.querySelector("main");const page=document.getElementById("returnsPolicyPage");if(main)main.style.display=isPolicy?"none":"";if(page)page.hidden=!isPolicy;if(isPolicy){window.scrollTo(0,0)}}window.addEventListener("hashchange",syncReturnsPolicyPage);document.addEventListener("DOMContentLoaded",syncReturnsPolicyPage);syncReturnsPolicyPage();
+document.getElementById("footerLink6")?.addEventListener("click",function(event){event.preventDefault();if(location.hash!=="#returns-policy"){location.hash="returns-policy"}else{syncReturnsPolicyPage()}},{capture:true});\n</script>
 
 </body></html>
