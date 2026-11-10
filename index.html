@@ -847,6 +847,13 @@ renderProducts();updateCart();loadPublicProducts();
 </style>
 <script>
 /* MaxiMus admin suite: uses existing Supabase tables and policies; no schema changes. */
+/* Define permission state before any admin login/render callbacks can use it. */
+window.maxiIsAdmin=false;
+window.maxiUserPermissions={};
+window.maxiCan=function(permission){
+ return window.maxiIsAdmin===true || window.maxiUserPermissions?.[permission]===true;
+};
+
 let adminOrderQuery="",adminOrderStatus="All",adminProductQuery="";
 function maximosMoney(n){return fmt(Number(n)||0)}
 function maximosDate(v){const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("en-EG")}
@@ -981,8 +988,6 @@ async function saveMaximosCategories(e){
 <script>
 /* MaxiMus operations modules — additive UI over the existing Supabase project. */
 const maxiBaseRenderAdmin = window.renderAdmin;
-let maxiIsAdmin=false,maxiUserPermissions={};
-function maxiCan(permission){return maxiIsAdmin||maxiUserPermissions?.[permission]===true}
 const maxiPermissions = [
   ["orders.read","عرض الطلبات"],["orders.manage","إدارة الطلبات"],["customers.read","عرض العملاء"],["customers.manage","تعديل بيانات العملاء"],
   ["returns.manage","المرتجعات والاسترداد"],["products.manage","إدارة المنتجات والتكلفة"],
