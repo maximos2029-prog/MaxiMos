@@ -380,6 +380,35 @@ body{direction:rtl;text-align:right}.brand,.brand-home,.brandname,.nav,.head-act
   }
 }
 
+
+/* MaxiMus mobile side menu inspired by the reference navigation */
+.maxi-menu-overlay{position:fixed;inset:0;z-index:80;background:rgba(18,22,19,.52);opacity:0;visibility:hidden;transition:opacity .24s ease,visibility .24s ease}
+.maxi-menu-overlay.show{opacity:1;visibility:visible}
+.maxi-menu-drawer{position:absolute;top:0;right:0;width:min(340px,88vw);height:100%;height:100dvh;background:#fff;overflow-y:auto;transform:translateX(102%);transition:transform .28s ease;box-shadow:-12px 0 35px rgba(0,0,0,.12);padding:0 0 max(24px,env(safe-area-inset-bottom))}
+.maxi-menu-overlay.show .maxi-menu-drawer{transform:translateX(0)}
+.maxi-menu-heading{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #e7e7e7;font-size:10px;letter-spacing:1.5px;color:#555}
+.maxi-menu-heading button{background:none;color:#333;font-size:25px;line-height:1;padding:5px}
+.maxi-menu-categories{border-top:2px solid #263b32}
+.maxi-menu-category{border-bottom:1px solid #e8e8e8}
+.maxi-menu-category>button{width:100%;min-height:47px;padding:0 20px;background:#fff;display:flex;align-items:center;justify-content:space-between;color:#30332f;text-align:right;font-size:12px}
+.maxi-menu-category>button .plus{font-size:19px;font-weight:300;color:#555;transition:transform .2s}
+.maxi-menu-category.open>button .plus{transform:rotate(45deg)}
+.maxi-menu-subitems{display:none;background:#f7f7f5;padding:4px 0 8px}
+.maxi-menu-category.open .maxi-menu-subitems{display:block}
+.maxi-menu-subitems button{display:block;width:100%;padding:10px 36px;text-align:right;background:transparent;color:#696b65;font-size:11px}
+.maxi-menu-subitems button:active,.maxi-menu-subitems button:hover{color:#263b32;background:#eeeee9}
+.maxi-menu-links{margin-top:10px}
+.maxi-menu-links>a,.maxi-menu-links>button,.maxi-menu-language{width:100%;min-height:47px;padding:0 20px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;text-decoration:none;background:#fff;color:#30332f;font-size:12px;text-align:right}
+.maxi-menu-links span{color:#777}
+.maxi-menu-language strong{font-size:11px;font-weight:500;color:#666}
+body.maxi-menu-open{overflow:hidden}
+@media(max-width:600px){
+ .header .head-actions{display:flex;align-items:center;gap:5px}
+ .header .head-actions .menu-trigger{display:grid;place-items:center;width:40px;height:40px;padding:0;font-size:21px;grid-column:1}
+ .header .head-actions .admin-open{display:none}
+}
+@media(min-width:601px){.menu-trigger{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -387,7 +416,7 @@ body{direction:rtl;text-align:right}.brand,.brand-home,.brandname,.nav,.head-act
 <header class="header">
 <nav class="nav" aria-label="القائمة الرئيسية"><a href="#home">الرئيسية</a><a href="#shop">المتجر</a><a href="#categories">الأقسام</a></nav>
 <a class="brand brand-home" href="#home" aria-label="الصفحة الرئيسية MaxiMus" onclick="window.scrollTo({top:0,behavior:'smooth'})"><img class="brand-mark" src="/assets/maximos-mark.jpg" alt=""><span class="brandname">MaxiMus<small>GLOBAL INNOVATIONS</small></span></a>
-<div class="head-actions"><button type="button" class="admin-open" onclick="window.openAdmin()">الإدارة</button><button class="icon-btn" aria-label="بحث" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('productSearch')?.focus(),350)">⌕</button><button class="icon-btn" aria-label="سلة التسوق" onclick="openCart()">♧<span class="count" id="cartCount">0</span></button></div>
+<div class="head-actions"><button type="button" class="icon-btn menu-trigger" aria-label="فتح القائمة" aria-expanded="false" onclick="openMaxiMenu()">☰</button><button type="button" class="admin-open" onclick="window.openAdmin()">الإدارة</button><button class="icon-btn" aria-label="بحث" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('productSearch')?.focus(),350)">⌕</button><button class="icon-btn" aria-label="سلة التسوق" onclick="openCart()">♧<span class="count" id="cartCount">0</span></button></div>
 </header>
 <main>
 <section class="hero" id="home"><div class="hero-copy"><span class="eyebrow" id="heroEyebrow">أناقة تليق بك كل يوم</span><h1 id="heroTitle">جدّد<br>ستايلك.</h1><p id="heroDescription">قطع أساسية مختارة بعناية. اكتشف تشكيلة تجمع بين الراحة والأناقة وتكمل إطلالتك في كل وقت.</p><a class="btn" id="heroButton" href="#shop">تسوّق المجموعة الجديدة <span>→</span></a></div><div class="hero-image" id="heroImage" role="img" aria-label="Menswear editorial model"></div></section>
@@ -415,6 +444,20 @@ body{direction:rtl;text-align:right}.brand,.brand-home,.brandname,.nav,.head-act
 <footer class="footer"><div><a class="brand" href="#"><img class="brand-mark" src="/assets/maximos-mark.jpg" alt=""><span class="brandname">MaxiMus<small>أزياء رجالي عصرية</small></span></a><p id="footerTagline">أساسيات أنيقة للرجل العصري.</p><div class="social" aria-label="تابعنا على مواقع التواصل"><a href="#" aria-label="Instagram" data-social="instagram" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg></a><a href="https://www.facebook.com/share/19xzmhMsQ9/" aria-label="Facebook" data-social="facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.1H7.3V13h2.8v8z"/></svg></a><a href="https://www.tiktok.com/@maximus.eg?_r=1&_t=ZS-9BINsD8fQji" aria-label="TikTok" data-social="tiktok"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.6 7.1a6.4 6.4 0 0 1-4-1.4v8.1a5.7 5.7 0 1 1-5.7-5.7c.4 0 .8 0 1.2.1v3.2a2.6 2.6 0 1 0 1.3 2.3V2.5h3.2c.2 2 1.8 3.6 4 3.8z"/></svg></a></div></div><div><h4>روابط سريعة</h4><a href="#home" >الرئيسية</a><a href="#shop" >كل المنتجات</a><a href="#categories" >الأقسام</a></div><div><h4>خدمة العملاء</h4><a href="#shipping-faq">معلومات الشحن والتوصيل</a><a href="#returns-faq">سياسة الاستبدال والاسترجاع</a><a class="footer-whatsapp" href="https://wa.me/201030207079" target="_blank" rel="noopener">تواصل معنا على واتساب ↗</a></div><div class="copyright"><span>© 2026 MAXIMUS. جميع الحقوق محفوظة.</span><span>أناقة تصنع الفرق كل يوم.</span></div></footer>
 <nav class="mobile-bottom-nav" aria-label="التنقل السريع"><a href="#home"><span>⌂</span >الرئيسية</a><a href="#shop"><span>▦</span>المتجر</a><button type="button" onclick="openCart()"><span>♧</span>السلة <b id="mobileCartCount">0</b></button></nav>
 <a class="maxi-whatsapp-float" href="https://wa.me/201030207079" target="_blank" rel="noopener" aria-label="تواصل مع MaxiMus على واتساب" title="واتساب"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16.02 2.67A13.25 13.25 0 0 0 4.64 22.7L2.8 29.33l6.8-1.78a13.27 13.27 0 1 0 6.42-24.88Zm0 24.12a10.8 10.8 0 0 1-5.5-1.5l-.4-.24-4.03 1.06 1.08-3.92-.26-.41a10.82 10.82 0 1 1 9.11 5.01Z"/><path d="M22.05 18.4c-.33-.17-1.95-.96-2.25-1.07-.3-.11-.52-.17-.74.17-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.17-1.4-.52-2.67-1.65-.99-.88-1.66-1.97-1.85-2.3-.19-.33-.02-.51.14-.68.15-.15.33-.38.5-.57.17-.19.22-.33.33-.55.11-.22.06-.41-.03-.58-.08-.17-.74-1.79-1.01-2.45-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.58.08-.88.41-.3.33-1.15 1.12-1.15 2.73s1.18 3.17 1.34 3.39c.17.22 2.32 3.54 5.62 4.96.79.34 1.4.54 1.88.69.79.25 1.51.21 2.08.13.63-.09 1.95-.8 2.23-1.57.27-.77.27-1.43.19-1.57-.08-.14-.3-.22-.63-.38Z"/></svg></a>
+
+<div class="maxi-menu-overlay" id="maxiMenuOverlay" onclick="if(event.target===this)closeMaxiMenu()">
+ <aside class="maxi-menu-drawer" id="maxiMenuDrawer" aria-label="القائمة الرئيسية" dir="rtl">
+  <div class="maxi-menu-heading"><span>MENU</span><button type="button" aria-label="إغلاق القائمة" onclick="closeMaxiMenu()">×</button></div>
+  <div class="maxi-menu-categories" id="maxiMenuCategories"></div>
+  <div class="maxi-menu-links">
+   <a href="#shop" onclick="closeMaxiMenu()">كل المنتجات <span>↗</span></a>
+   <button type="button" onclick="maxiMenuSearch()">بحث <span>⌕</span></button>
+   <a href="#faq" onclick="closeMaxiMenu()">خدمة العملاء <span>↗</span></a>
+   <div class="maxi-menu-language"><span>اللغة</span><strong>العربية</strong></div>
+  </div>
+ </aside>
+</div>
+
 <div class="overlay" id="cartOverlay" onclick="if(event.target===this)closeCart()"><aside class="drawer"><div class="drawer-head"><h3>سلة التسوق</h3><button class="close" onclick="closeCart()">×</button></div><div id="cartItems"></div><div class="cart-total"><span>المجموع الفرعي</span><span id="cartTotal">0 EGP</span></div><button class="btn whatsapp full" onclick="checkout()">إتمام الطلب →</button><p class="sub" id="cartPaymentNote">الدفع عند الاستلام. يتم تأكيد مصاريف الشحن قبل إرسال الطلب.</p></aside></div>
 <div class="modal" id="checkoutModal"><div class="modal-box" style="max-width:620px"><button class="close" style="float:right" onclick="closeCheckout()">×</button><span class="eyebrow">تأكيد الشراء</span><h2 class="admin-title">إتمام الطلب</h2><p class="admin-muted">أدخل بيانات التوصيل، وسيتواصل معك فريقنا لتأكيد الطلب.</p><form id="checkoutForm" class="admin-form" onsubmit="submitCheckout(event)"><label>الاسم بالكامل<input name="name" autocomplete="name" required maxlength="100"></label><label>رقم الهاتف<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="01xxxxxxxxx"></label><label class="wide">عنوان التوصيل<input name="address" autocomplete="street-address" required maxlength="300" placeholder="الشارع، رقم العقار، الدور، الشقة، المنطقة، المحافظة"></label><label>طريقة الدفع<select name="paymentMethod" id="checkoutPaymentMethod"><option value="Cash on delivery">الدفع عند الاستلام</option></select></label><label>منطقة التوصيل<select name="shipping_zone_id" id="checkoutShippingZone"><option value="">اختر المنطقة أو أكدها عبر واتساب</option></select></label><label class="wide">تكلفة الشحن<input id="checkoutShipping" readonly value="يتم التأكيد على واتساب"></label><div class="wide admin-note" id="checkoutSummary">ملخص الطلب هيظهر هنا.</div><div class="wide"><button class="admin-primary" style="width:100%" type="submit">تأكيد الطلب والمتابعة إلى واتساب</button></div></form></div></div>
 <div class="modal" id="productModal"><div class="modal-box"><button class="close" style="position:absolute;right:18px;top:12px;z-index:2" onclick="closeProduct()">×</button><div id="pdpContent"></div></div></div>
@@ -924,7 +967,46 @@ async function maxiInvoice(id){
  const s=inv.data.snapshot||{};
  const rows=(s.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td><td>'+maximosMoney(Number(i.qty||1)*Number(i.price||0))+'</td></tr>').join("");
  const w=window.open("","_blank");if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
- w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMUS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script></body></html>');w.document.close();
+ w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMUS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script>
+<script>
+function renderMaxiMenuCategories(){
+ const root=document.getElementById("maxiMenuCategories");
+ if(!root||root.dataset.ready==="1")return;
+ root.dataset.ready="1";
+ const cats=[...new Set((Array.isArray(products)?products:[]).map(p=>p.category).filter(Boolean))];
+ cats.forEach(category=>{
+  const row=document.createElement("div");row.className="maxi-menu-category";
+  const toggle=document.createElement("button");toggle.type="button";
+  const label=document.createElement("span");
+  label.textContent=typeof categoryDisplayName==="function"?categoryDisplayName(category):category;
+  const plus=document.createElement("span");plus.className="plus";plus.textContent="+";
+  toggle.append(label,plus);toggle.addEventListener("click",()=>row.classList.toggle("open"));
+  const sub=document.createElement("div");sub.className="maxi-menu-subitems";
+  const all=document.createElement("button");all.type="button";all.textContent="عرض منتجات "+label.textContent;
+  all.addEventListener("click",()=>{closeMaxiMenu();filterCategory(category);document.getElementById("shop")?.scrollIntoView({behavior:"smooth"});});
+  sub.appendChild(all);row.append(toggle,sub);root.appendChild(row);
+ });
+}
+function openMaxiMenu(){
+ renderMaxiMenuCategories();
+ document.getElementById("maxiMenuOverlay")?.classList.add("show");
+ document.body.classList.add("maxi-menu-open");
+ document.querySelector(".menu-trigger")?.setAttribute("aria-expanded","true");
+}
+function closeMaxiMenu(){
+ document.getElementById("maxiMenuOverlay")?.classList.remove("show");
+ document.body.classList.remove("maxi-menu-open");
+ document.querySelector(".menu-trigger")?.setAttribute("aria-expanded","false");
+}
+function maxiMenuSearch(){
+ closeMaxiMenu();
+ document.getElementById("shop")?.scrollIntoView({behavior:"smooth"});
+ setTimeout(()=>document.getElementById("productSearch")?.focus(),350);
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
+</script>
+
+</body></html>');w.document.close();
 }
 async function maxiCreateReturn(id){
  const reason=prompt("اكتب سبب طلب المرتجع:");if(!reason)return;
