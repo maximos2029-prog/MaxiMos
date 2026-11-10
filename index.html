@@ -88,7 +88,7 @@
 <label>Product name<input id="editName" required></label>
 <label>Price (EGP)<input id="editPrice" type="number" min="0" required></label>
 <label>Stock quantity<input id="editStock" type="number" min="0" value="10" required></label>
-<label class="wide">Available colors (separate with commas)<input id="editColors" type="text" placeholder="Black, White, Beige, Navy"><small style="color:#777">Only the colors you enter here will appear to customers.</small></label><div class="wide"><button type="button" class="admin-action" onclick="renderColorImageFields()">UPDATE COLOR IMAGE FIELDS</button><div id="colorImageFields" class="color-image-fields"></div></div>
+<label class="wide">Available colors (separate with commas)<input id="editColors" type="text" placeholder="Black, White, Beige, Navy" oninput="renderColorImageFields()"><small style="color:#777">Only the colors you enter here will appear to customers. Image fields appear automatically.</small></label><div class="wide"><div id="colorImageFields" class="color-image-fields"></div></div>
 <label>Category<select id="editCategory"><option>Essential Tees</option><option>Urban Casual</option><option>Smart Formal</option><option>Active Wear</option></select></label>
 <label class="wide">Product image — choose from your phone<input id="editImageFile" type="file" accept="image/*" onchange="uploadProductImage(this)" style="display:block;width:100%;padding:10px;border:1px solid #ddd;background:#fff;margin-top:7px"><small id="imageUploadStatus" style="display:block;margin-top:7px;color:#687052">Choose an image from Gallery. It will upload automatically.</small></label>
 <label class="wide">Or paste image URL<input id="editImage" type="url" placeholder="https://..."></label>
