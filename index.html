@@ -977,43 +977,7 @@ async function maxiInvoice(id){
  const rows=(s.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td><td>'+maximosMoney(Number(i.qty||1)*Number(i.price||0))+'</td></tr>').join("");
  const w=window.open("","_blank");if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
  w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMUS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script>
-<script>
-function renderMaxiMenuCategories(){
- const root=document.getElementById("maxiMenuCategories");
- if(!root||root.dataset.ready==="1")return;
- root.dataset.ready="1";
- const cats=[...new Set((Array.isArray(products)?products:[]).map(p=>p.category).filter(Boolean))];
- cats.forEach(category=>{
-  const row=document.createElement("div");row.className="maxi-menu-category";
-  const toggle=document.createElement("button");toggle.type="button";
-  const label=document.createElement("span");
-  label.textContent=typeof categoryDisplayName==="function"?categoryDisplayName(category):category;
-  const plus=document.createElement("span");plus.className="plus";plus.textContent="+";
-  toggle.append(label,plus);toggle.addEventListener("click",()=>row.classList.toggle("open"));
-  const sub=document.createElement("div");sub.className="maxi-menu-subitems";
-  const all=document.createElement("button");all.type="button";all.textContent="عرض منتجات "+label.textContent;
-  all.addEventListener("click",()=>{closeMaxiMenu();filterCategory(category);document.getElementById("shop")?.scrollIntoView({behavior:"smooth"});});
-  sub.appendChild(all);row.append(toggle,sub);root.appendChild(row);
- });
-}
-function openMaxiMenu(){
- renderMaxiMenuCategories();
- document.getElementById("maxiMenuOverlay")?.classList.add("show");
- document.body.classList.add("maxi-menu-open");
- document.querySelector(".menu-trigger")?.setAttribute("aria-expanded","true");
-}
-function closeMaxiMenu(){
- document.getElementById("maxiMenuOverlay")?.classList.remove("show");
- document.body.classList.remove("maxi-menu-open");
- document.querySelector(".menu-trigger")?.setAttribute("aria-expanded","false");
-}
-function maxiMenuSearch(){
- closeMaxiMenu();
- document.getElementById("shop")?.scrollIntoView({behavior:"smooth"});
- setTimeout(()=>document.getElementById("productSearch")?.focus(),350);
-}
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
-</script>
+
 
 </body></html>');w.document.close();
 }
@@ -1175,6 +1139,45 @@ async function loadAdminData(){
  }else customers=[];
  renderProducts();await loadStoreSettings();
 }
+</script>
+
+
+<script>
+function renderMaxiMenuCategories(){
+ const root=document.getElementById("maxiMenuCategories");
+ if(!root||root.dataset.ready==="1")return;
+ root.dataset.ready="1";
+ const cats=[...new Set((Array.isArray(products)?products:[]).map(p=>p.category).filter(Boolean))];
+ cats.forEach(category=>{
+  const row=document.createElement("div");row.className="maxi-menu-category";
+  const toggle=document.createElement("button");toggle.type="button";
+  const label=document.createElement("span");
+  label.textContent=typeof categoryDisplayName==="function"?categoryDisplayName(category):category;
+  const plus=document.createElement("span");plus.className="plus";plus.textContent="+";
+  toggle.append(label,plus);toggle.addEventListener("click",()=>row.classList.toggle("open"));
+  const sub=document.createElement("div");sub.className="maxi-menu-subitems";
+  const all=document.createElement("button");all.type="button";all.textContent="عرض منتجات "+label.textContent;
+  all.addEventListener("click",()=>{closeMaxiMenu();filterCategory(category);});
+  sub.appendChild(all);row.append(toggle,sub);root.appendChild(row);
+ });
+}
+function openMaxiMenu(){
+ renderMaxiMenuCategories();
+ document.getElementById("maxiMenuOverlay")?.classList.add("show");
+ document.body.classList.add("maxi-menu-open");
+ document.querySelector(".menu-trigger")?.setAttribute("aria-expanded","true");
+}
+function closeMaxiMenu(){
+ document.getElementById("maxiMenuOverlay")?.classList.remove("show");
+ document.body.classList.remove("maxi-menu-open");
+ document.querySelector(".menu-trigger")?.setAttribute("aria-expanded","false");
+}
+function maxiMenuSearch(){
+ closeMaxiMenu();
+ document.getElementById("shop")?.scrollIntoView({behavior:"smooth"});
+ setTimeout(()=>document.getElementById("productSearch")?.focus(),350);
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
 </script>
 
 </body></html>
