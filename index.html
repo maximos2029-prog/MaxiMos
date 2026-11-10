@@ -222,8 +222,9 @@
 .copyright{border-color:#35413a;color:#aaa99f}
 .mobile-bottom-nav{z-index:30;background:#fff;border-top:1px solid #e8e4dc;box-shadow:0 -5px 20px #00000008}
 .mobile-bottom-nav a,.mobile-bottom-nav button{color:#4a5149}
-.maxi-whatsapp-float{position:fixed;right:22px;bottom:25px;z-index:35;display:flex;align-items:center;gap:9px;padding:12px 16px;border-radius:30px;background:#1f9d62;color:white;text-decoration:none;box-shadow:0 8px 24px #0002;font-size:10px;letter-spacing:.5px}
-.maxi-whatsapp-float span{font-size:17px}
+.maxi-whatsapp-float{position:fixed;right:22px;bottom:25px;z-index:35;width:58px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#25D366;color:#fff;text-decoration:none;box-shadow:0 8px 24px #0003;transition:transform .2s ease,box-shadow .2s ease}
+.maxi-whatsapp-float:hover{transform:translateY(-3px);box-shadow:0 12px 28px #0004}
+.maxi-whatsapp-float svg{display:block;width:32px;height:32px;fill:currentColor}
 @media(max-width:850px){
  .products{grid-template-columns:repeat(2,minmax(0,1fr))}
  .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -267,8 +268,8 @@
  .feature{padding:15px 7px}
  .feature h3{font-size:8px}
  .feature p{font-size:9px;line-height:1.5}
- .maxi-whatsapp-float{right:12px;bottom:77px;padding:10px 12px}
- .maxi-whatsapp-float b{display:none}
+ .maxi-whatsapp-float{right:14px;bottom:78px;width:52px;height:52px}
+ .maxi-whatsapp-float svg{width:29px;height:29px}
  .footer{padding-bottom:80px}
 }
 
@@ -306,7 +307,7 @@
 </main>
 <footer class="footer"><div><a class="brand" href="#"><img class="brand-mark" src="/assets/maximos-mark.jpg" alt=""><span class="brandname">MaxiMus<small>MODERN MENSWEAR</small></span></a><p id="footerTagline">Elevated essentials for the modern man.</p><div class="social"><a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="TikTok">♪</a></div></div><div><h4>QUICK LINKS</h4><a href="#home">Home</a><a href="#shop">Shop all</a><a href="#categories">Categories</a></div><div><h4>CUSTOMER SERVICE</h4><a href="#faq">Shipping information</a><a href="#faq">Return & exchange policy</a><a href="https://wa.me/201030207079">Contact us on WhatsApp</a></div><div class="copyright"><span>© 2026 MAXIMUS. ALL RIGHTS RESERVED.</span><span>MADE FOR EVERYDAY DISTINCTION.</span></div></footer>
 <nav class="mobile-bottom-nav" aria-label="Quick navigation"><a href="#home"><span>⌂</span>Home</a><a href="#shop"><span>▦</span>Shop</a><button type="button" onclick="openCart()"><span>♧</span>Bag <b id="mobileCartCount">0</b></button></nav>
-<a class="maxi-whatsapp-float" href="https://wa.me/201030207079" target="_blank" rel="noopener" aria-label="Chat with MaxiMus on WhatsApp"><span>◉</span><b>CHAT WITH US</b></a>
+<a class="maxi-whatsapp-float" href="https://wa.me/201030207079" target="_blank" rel="noopener" aria-label="Chat with MaxiMus on WhatsApp" title="WhatsApp"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16.02 2.67A13.25 13.25 0 0 0 4.64 22.7L2.8 29.33l6.8-1.78a13.27 13.27 0 1 0 6.42-24.88Zm0 24.12a10.8 10.8 0 0 1-5.5-1.5l-.4-.24-4.03 1.06 1.08-3.92-.26-.41a10.82 10.82 0 1 1 9.11 5.01Z"/><path d="M22.05 18.4c-.33-.17-1.95-.96-2.25-1.07-.3-.11-.52-.17-.74.17-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.17-1.4-.52-2.67-1.65-.99-.88-1.66-1.97-1.85-2.3-.19-.33-.02-.51.14-.68.15-.15.33-.38.5-.57.17-.19.22-.33.33-.55.11-.22.06-.41-.03-.58-.08-.17-.74-1.79-1.01-2.45-.27-.65-.54-.56-.74-.57h-.63c-.22 0-.58.08-.88.41-.3.33-1.15 1.12-1.15 2.73s1.18 3.17 1.34 3.39c.17.22 2.32 3.54 5.62 4.96.79.34 1.4.54 1.88.69.79.25 1.51.21 2.08.13.63-.09 1.95-.8 2.23-1.57.27-.77.27-1.43.19-1.57-.08-.14-.3-.22-.63-.38Z"/></svg></a>
 <div class="overlay" id="cartOverlay" onclick="if(event.target===this)closeCart()"><aside class="drawer"><div class="drawer-head"><h3>Your Shopping Bag</h3><button class="close" onclick="closeCart()">×</button></div><div id="cartItems"></div><div class="cart-total"><span>Subtotal</span><span id="cartTotal">0 EGP</span></div><button class="btn whatsapp full" onclick="checkout()">CONTINUE TO CHECKOUT →</button><p class="sub" id="cartPaymentNote">Cash on delivery. Shipping is confirmed before dispatch.</p></aside></div>
 <div class="modal" id="checkoutModal"><div class="modal-box" style="max-width:620px"><button class="close" style="float:right" onclick="closeCheckout()">×</button><span class="eyebrow">SECURE ORDER DETAILS</span><h2 class="admin-title">Checkout</h2><p class="admin-muted">Enter your delivery details. Our team will confirm your order on WhatsApp.</p><form id="checkoutForm" class="admin-form" onsubmit="submitCheckout(event)"><label>Full name<input name="name" autocomplete="name" required maxlength="100"></label><label>Mobile number<input name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="01xxxxxxxxx"></label><label class="wide">Full delivery address<input name="address" autocomplete="street-address" required maxlength="300" placeholder="Street, building, floor, apartment, area, governorate"></label><label>Payment method<select name="paymentMethod" id="checkoutPaymentMethod"><option value="Cash on delivery">Cash on delivery</option></select></label><label>Shipping zone<select name="shipping_zone_id" id="checkoutShippingZone"><option value="">Confirm with us on WhatsApp</option></select></label><label class="wide">Shipping estimate<input id="checkoutShipping" readonly value="Confirmed on WhatsApp"></label><div class="wide admin-note" id="checkoutSummary">Order summary will appear here.</div><div class="wide"><button class="admin-primary" style="width:100%" type="submit">PLACE ORDER & CONTINUE TO WHATSAPP</button></div></form></div></div>
 <div class="modal" id="productModal"><div class="modal-box"><button class="close" style="position:absolute;right:18px;top:12px;z-index:2" onclick="closeProduct()">×</button><div id="pdpContent"></div></div></div>
