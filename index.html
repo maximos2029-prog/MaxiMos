@@ -418,6 +418,50 @@ body.maxi-menu-open{overflow:hidden}
  .maxi-menu-subitems button{font-size:12px;padding-top:12px;padding-bottom:12px}
 }
 
+
+/* Product detail page refinement */
+#productModal{padding:0;background:rgba(22,25,22,.72);z-index:75}
+#productModal.show{display:block;overflow-y:auto}
+#productModal .modal-box{width:min(1240px,100%);min-height:100vh;margin:0 auto;padding:clamp(18px,3vw,42px);background:#fbfaf7;box-shadow:0 0 50px #0002}
+#productModal .pdp{grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);gap:clamp(24px,4vw,58px);max-width:1160px;padding-top:28px}
+#productModal .gallery-main{height:auto;aspect-ratio:4/5;min-height:0;max-height:760px;object-fit:cover}
+#productModal .pdp-info h2{font-family:Arial,sans-serif;font-size:clamp(23px,2.6vw,34px);font-weight:600;line-height:1.25;margin:12px 0}
+#productModal .pdp-price-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0}
+#productModal .pdp-price-row .price{margin:0;font-size:21px;color:#303b31}
+#productModal .pdp-stock{font-size:11px;padding:6px 10px;border-radius:2px}
+#productModal .in-stock{background:#e8f2e9;color:#326343}
+#productModal .out-stock{background:#f8e9e7;color:#a43e32}
+#productModal .pdp-description{font-size:13px;line-height:1.9;color:#73736c;margin:14px 0 20px}
+#productModal .option-label{margin:20px 0 10px}
+#productModal .sizes button{border-radius:3px}
+#productModal .pdp-quantity{display:flex;align-items:center;justify-content:space-between;margin-top:22px;font-size:12px}
+#productModal .qty-control{display:flex;align-items:center;border:1px solid #d9d7d0;border-radius:24px;min-width:112px;justify-content:space-around;height:38px}
+#productModal .qty-control button{background:transparent;padding:5px 10px;font-size:17px;color:#343e31}
+#productModal .qty-control strong{font-size:12px;min-width:16px;text-align:center}
+#productModal .pdp-actions{grid-template-columns:1fr 1fr;margin-top:22px}
+#productModal .pdp-actions .btn{min-height:48px;border-radius:3px;letter-spacing:0;font-size:12px}
+#productModal .pdp-actions .pdp-add{background:#fff;border:1px solid #53624c;color:#354331}
+#productModal .pdp-actions .btn:disabled{opacity:.45;cursor:not-allowed}
+#productModal .pdp-benefits{display:grid;gap:10px;margin:22px 0;padding:17px;background:#f1f0eb}
+#productModal .pdp-benefits>div{display:flex;align-items:center;gap:12px}
+#productModal .pdp-benefits>div>span{width:27px;height:27px;display:grid;place-items:center;border:1px solid #b8b8ac;border-radius:50%;color:#59634e}
+#productModal .pdp-benefits section{display:grid;gap:3px}
+#productModal .pdp-benefits b{font-size:11px;font-weight:600}
+#productModal .pdp-benefits small{font-size:10px;color:#85857d}
+#productModal .bundle{margin-top:20px}
+#productModal .pdp-recommendations{padding-top:45px}
+#productModal .pdp-recommendations .products{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:700px){
+ #productModal .modal-box{padding:12px 14px 30px}
+ #productModal .pdp{display:flex;flex-direction:column;gap:8px;padding-top:34px}
+ #productModal .pdp-gallery{order:0}
+ #productModal .gallery-main{width:100%;aspect-ratio:4/5;max-height:none;min-height:0}
+ #productModal .pdp-info{order:1;padding:10px 2px}
+ #productModal .pdp-info h2{font-size:25px}
+ #productModal .pdp-recommendations .products{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #productModal .pdp-recommendations{padding-top:28px}
+}
+
 </style>
 </head>
 <body>
@@ -565,20 +609,58 @@ const products=[
 {id:6,name:"Relaxed Chino Trousers",price:1350,tag:"",images:["https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1506629905607-d9c297d6a6a6?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=85","https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=900&q=85"],desc:"A relaxed modern chino that pairs effortlessly with your everyday rotation."}
 ];
 const fmt=n=>n.toLocaleString("en-EG")+" EGP";
-function categoryDisplayName(value){const map={"Essential Tees":"تيشيرتات أساسية","Urban Casual":"كاجوال يومي","Smart Formal":"ملابس رسمية","Active Wear":"ملابس رياضية","Jackets":"جاكيتات","Pants":"بناطيل","Shirts":"قمصان","Polo T-shirts":"تيشيرتات بولو","Round T-shirts":"تيشيرتات"};return map[String(value||"").trim()]||String(value||"");}products.forEach((p,i)=>{p.stock=p.stock??[24,12,9,18,15,8][i]??10;p.category=p.category??["Essential Tees","Urban Casual","Smart Formal","Active Wear","Essential Tees","Urban Casual"][i]??"Urban Casual"});let cart=[];let current=null;let selectedSize="M",selectedColor="Black",activeImage=0;let bundleSelected=[];
+function categoryDisplayName(value){const map={"Essential Tees":"تيشيرتات أساسية","Urban Casual":"كاجوال يومي","Smart Formal":"ملابس رسمية","Active Wear":"ملابس رياضية","Jackets":"جاكيتات","Pants":"بناطيل","Shirts":"قمصان","Polo T-shirts":"تيشيرتات بولو","Round T-shirts":"تيشيرتات"};return map[String(value||"").trim()]||String(value||"");}products.forEach((p,i)=>{p.stock=p.stock??[24,12,9,18,15,8][i]??10;p.category=p.category??["Essential Tees","Urban Casual","Smart Formal","Active Wear","Essential Tees","Urban Casual"][i]??"Urban Casual"});let cart=[];let current=null;let selectedSize="M",selectedColor="Black",activeImage=0,selectedQty=1;let bundleSelected=[];
 function renderProducts(){const term=productSearch.trim().toLowerCase();let list=products.filter(p=>(activeCategory==="All"||String(p.category||"").toLowerCase()===activeCategory.toLowerCase())&&(!term||[p.name,p.desc,p.category].some(v=>String(v||"").toLowerCase().includes(term))));if(productSort==="price-low")list.sort((a,b)=>Number(a.price)-Number(b.price));else if(productSort==="price-high")list.sort((a,b)=>Number(b.price)-Number(a.price));else if(productSort==="name")list.sort((a,b)=>String(a.name).localeCompare(String(b.name)));const caption=document.getElementById("filterCaption");if(caption)caption.textContent=(activeCategory==="All"?"كل الأقسام":categoryDisplayName(activeCategory))+" · "+list.length+" منتج";document.getElementById("productGrid").innerHTML=list.length?list.map(p=>{const out=Number(p.stock)<=0;const tag=({"NEW":"جديد","BEST SELLER":"الأكثر مبيعًا","SALE":"تخفيض","LIMITED":"كمية محدودة"})[String(p.tag||"").toUpperCase()]||p.tag||"";return `<article class="product-card"><span class="tag">${esc(tag)}</span><img class="product-img" src="${esc(p.images?.[0]||"")}" alt="${esc(p.name)}" onclick="openProduct(${Number(p.id)})"><div class="product-info"><h3>${esc(p.name)}</h3><span class="price">${fmt(Number(p.price)||0)}</span><p class="sub">${out?"غير متوفر":Number(p.stock)+" قطعة متاحة"}</p><div class="card-actions"><button class="add" ${out?"disabled":""} onclick="quickAdd(${Number(p.id)})">${out?"نفد من المخزون":"أضف إلى السلة"}</button><button class="view" onclick="openProduct(${Number(p.id)})">عرض التفاصيل</button></div></div></article>`}).join(""):`<div class="empty-products">لا توجد منتجات مطابقة لبحثك. جرّب كلمة أخرى أو اعرض كل المنتجات.</div>`}
 function setProductSearch(value){productSearch=String(value||"");renderProducts()}
 function setProductSort(value){productSort=value||"featured";renderProducts()}
 function filterCategory(category){activeCategory=category||"All";const search=document.getElementById("productSearch");if(search)search.value="";productSearch="";renderProducts();document.getElementById("shop").scrollIntoView({behavior:"smooth",block:"start"})}
 function quickAdd(id){const p=products.find(x=>x.id===id);if(!p||Number(p.stock)<=0){alert("المنتج غير متوفر حاليًا.");return}if(Array.isArray(p.colors)&&p.colors.length){openProduct(id);return}const inCart=cart.filter(x=>x.id===id).reduce((s,x)=>s+x.qty,0);if(inCart>=Number(p.stock)){alert("أضفت كل الكمية المتاحة من المنتج ده.");return}cart.push({id:p.id,name:p.name,price:p.price,size:"M",color:"—",qty:1});updateCart();openCart()}
-function openProduct(id){current=products.find(x=>x.id===id);selectedSize="M";selectedColor=Array.isArray(current?.colors)?(current.colors[0]||""):"";activeImage=0;bundleSelected=[];renderPdp();const modal=document.getElementById("productModal");modal.classList.add("show");modal.scrollTop=0;const box=modal.querySelector(".modal-box");if(box)box.scrollTop=0}
+function openProduct(id){current=products.find(x=>x.id===id);selectedSize="M";selectedQty=1;selectedColor=Array.isArray(current?.colors)?(current.colors[0]||""):"";activeImage=0;bundleSelected=[];renderPdp();const modal=document.getElementById("productModal");modal.classList.add("show");modal.scrollTop=0;const box=modal.querySelector(".modal-box");if(box)box.scrollTop=0}
 function closeProduct(){document.getElementById("productModal").classList.remove("show")}
 function colorSwatchValue(color){const key=String(color||"").trim().toLowerCase().replace(/[_-]+/g," ").replace(/\s+/g," ");const known={black:"#171717","jet black":"#101010",white:"#f7f7f4","off white":"#f2eee5",offwhite:"#f2eee5",ivory:"#f1ead8",cream:"#e9dfc8",beige:"#cbb99b","camel beige":"#c49a62",camel:"#c49a62","light beige":"#e2d1b7",sand:"#d6c2a0",khaki:"#b5a078",taupe:"#8b7968",tan:"#bd9565",brown:"#76543d","dark brown":"#4b3024",chocolate:"#4b3024",coffee:"#634332",burgundy:"#741f35",maroon:"#741f35",wine:"#741f35",red:"#b32632","dark red":"#7d1f2a",rust:"#a64b2a",terracotta:"#bd6247",pink:"#e6a0ad","light pink":"#f2c7cf",blush:"#e8b7b4","dusty pink":"#c98791",rose:"#c77b87",purple:"#70458a",lavender:"#b9a1d1",navy:"#182b49","dark blue":"#182b49",blue:"#294d79","light blue":"#83b6d5","sky blue":"#78b9df","royal blue":"#2855a6",denim:"#496b91",teal:"#287c78",turquoise:"#40b5ad",green:"#526044","dark green":"#244b38","forest green":"#28533b",olive:"#596044",sage:"#9ba58b",mint:"#a9d5c1",yellow:"#e4c64b",mustard:"#c49a24",orange:"#d77a32",grey:"#888888",gray:"#888888","light grey":"#c7c7c4","light gray":"#c7c7c4","dark grey":"#454545","dark gray":"#454545",charcoal:"#383838",graphite:"#414141",silver:"#b9bdc2"};const arabic={"أسود":"#171717","ابيض":"#f7f7f4","أبيض":"#f7f7f4","أوف وايت":"#f2eee5","بيج":"#cbb99b","بيج فاتح":"#e2d1b7","جملي":"#c49a62","بيج جملي":"#c49a62","نبيتي":"#741f35","كحلي":"#182b49","أزرق":"#294d79","ازرق":"#294d79","أخضر":"#526044","اخضر":"#526044","زيتي":"#596044","رمادي":"#888888","رصاصي":"#454545","بني":"#76543d","أحمر":"#b32632","احمر":"#b32632","وردي":"#e6a0ad","موف":"#70458a","أصفر":"#e4c64b","اصفر":"#e4c64b"};return known[key]||arabic[String(color||"").trim()]||(/^#[0-9a-f]{3,8}$/i.test(key)?key:"#b8b5ad")}
-function renderPdp(){let p=current;if(!p)return;const colors=Array.isArray(p.colors)?p.colors:[];const chosenColorImage=p.colorImages?.[selectedColor]||"";const gallery=chosenColorImage?[chosenColorImage]:(p.images?.length?p.images:[]);const mainImage=gallery[activeImage]||gallery[0]||p.images?.[0]||"";const colorMarkup=colors.length?'<div class="option-label">اللون: '+esc(selectedColor||'')+'</div><div class="color-options">'+colors.map(color=>'<button type="button" class="color-option '+(color===selectedColor?'selected':'')+'" style="background:'+colorSwatchValue(color)+'" data-color="'+esc(color)+'" aria-label="'+esc(color)+'" title="'+esc(color)+'"></button>').join('')+'</div>':'';document.getElementById("pdpContent").innerHTML=`<div class="pdp"><div class="pdp-gallery"><img class="gallery-main" id="mainPdpImage" src="${mainImage}" alt="${esc(p.name)}" onerror="this.onerror=null;this.src='${esc(p.images?.[0]||"")}'"><div class="thumbs">${gallery.map((im,i)=>`<img class="${i===activeImage?'active':''}" src="${im}" alt="${esc(p.name)} - صورة ${i+1}" onclick="activeImage=${i};renderPdp()">`).join("")}</div></div><div class="pdp-info"><span class="eyebrow">اختيارات مميزة • أساسيات راقية</span><h2>${esc(p.name)}</h2><div class="price">${fmt(p.price)}</div><p>${esc(p.desc||'')}</p><div class="option-label">المقاس</div><div class="sizes">${["S","M","L","XL","2XL"].map(s=>`<button type="button" class="${s===selectedSize?'selected':''}" onclick="selectedSize='${s}';renderPdp()">${s}</button>`).join("")}</div>${colorMarkup}<div class="pdp-actions"><button type="button" class="btn whatsapp" onclick="buyNow()">اطلب عبر واتساب ↗</button></div><div class="bundle"><h3>قد يعجبك مع هذا المنتج</h3>${products.filter(x=>x.id!==p.id).slice(0,3).map(x=>`<label class="bundle-item"><input type="checkbox" value="${x.id}" onchange="toggleBundle(${x.id},this.checked)"><img src="${x.images[0]||''}" alt="${esc(x.name)}"><span>${esc(x.name)}<br><b>${fmt(x.price)}</b></span></label>`).join("")}</div></div></div><section class="pdp-recommendations"><div class="section-head"><div><span class="eyebrow">أكمل إطلالتك</span><h2 style="font-size:27px">منتجات قد تنال إعجابك</h2></div></div><div class="products">${products.filter(x=>x.id!==p.id).slice(0,4).map(x=>`<div class="product-card"><img class="product-img" src="${x.images[0]||''}" alt="${esc(x.name)}" onclick="openProduct(${x.id})"><div class="product-info"><h3>${esc(x.name)}</h3><span class="price">${fmt(x.price)}</span></div></div>`).join("")}</div></section>`;document.querySelectorAll("#pdpContent .color-option").forEach(button=>button.addEventListener("click",()=>{selectedColor=button.dataset.color;activeImage=0;renderPdp()}))}
+function renderPdp(){
+ let p=current;if(!p)return;
+ const colors=Array.isArray(p.colors)?p.colors:[];
+ const chosenColorImage=p.colorImages?.[selectedColor]||"";
+ const gallery=chosenColorImage?[chosenColorImage]:(p.images?.length?p.images:[]);
+ const mainImage=gallery[activeImage]||gallery[0]||p.images?.[0]||"";
+ const stock=Math.max(0,Number(p.stock)||0);
+ const available=stock>0;
+ const colorMarkup=colors.length?'<div class="option-label">اللون: <strong>'+esc(selectedColor||"اختر اللون")+'</strong></div><div class="color-options">'+colors.map(color=>'<button type="button" class="color-option '+(color===selectedColor?'selected':'')+'" style="background:'+colorSwatchValue(color)+'" data-color="'+esc(color)+'" aria-label="'+esc(color)+'" title="'+esc(color)+'"></button>').join("")+'</div>':'';
+ const sizes=["S","M","L","XL","2XL"];
+ const sizeMarkup='<div class="option-label">المقاس</div><div class="sizes">'+sizes.map(s=>'<button type="button" class="'+(s===selectedSize?'selected':'')+'" onclick="selectedSize=\''+s+'\';renderPdp()">'+s+'</button>').join("")+'</div>';
+ const qtyMarkup='<div class="pdp-quantity"><span>الكمية</span><div class="qty-control"><button type="button" aria-label="تقليل الكمية" onclick="selectedQty=Math.max(1,selectedQty-1);renderPdp()">−</button><strong>'+selectedQty+'</strong><button type="button" aria-label="زيادة الكمية" onclick="selectedQty=Math.min('+Math.max(1,stock)+',selectedQty+1);renderPdp()">＋</button></div></div>';
+ const recommendations=products.filter(x=>x.id!==p.id).slice(0,4);
+ document.getElementById("pdpContent").innerHTML=`<div class="pdp">
+  <div class="pdp-gallery">
+   <img class="gallery-main" id="mainPdpImage" src="${esc(mainImage)}" alt="${esc(p.name)}" onerror="this.onerror=null;this.src='${esc(p.images?.[0]||"")}'">
+   <div class="thumbs">${gallery.map((im,i)=>`<img class="${i===activeImage?'active':''}" src="${esc(im)}" alt="${esc(p.name)} - صورة ${i+1}" onclick="activeImage=${i};renderPdp()">`).join("")}</div>
+  </div>
+  <div class="pdp-info" dir="rtl">
+   <span class="eyebrow">${esc(categoryDisplayName(p.category||"")||"MaxiMus Collection")}</span>
+   <h2>${esc(p.name)}</h2>
+   <div class="pdp-price-row"><strong class="price">${fmt(p.price)}</strong><span class="pdp-stock ${available?'in-stock':'out-stock'}">${available?'متوفر في المخزون':'غير متوفر حاليًا'}</span></div>
+   <p class="pdp-description">${esc(p.desc||"اختيار أنيق من MaxiMus، مصمم للراحة والأناقة في كل يوم.")}</p>
+   ${sizeMarkup}${colorMarkup}${qtyMarkup}
+   <div class="pdp-actions">
+    <button type="button" class="btn pdp-add" onclick="addFromPdp()" ${available?'':'disabled'}>أضف إلى السلة</button>
+    <button type="button" class="btn whatsapp" onclick="buyNow()" ${available?'':'disabled'}>شراء الآن</button>
+   </div>
+   <div class="pdp-benefits">
+    <div><span>✓</span><section><b>الدفع عند الاستلام</b><small>ادفع لما طلبك يوصلك</small></section></div>
+    <div><span>↗</span><section><b>شحن لجميع المحافظات</b><small>تأكيد تكلفة وموعد الشحن قبل إرسال الطلب</small></section></div>
+    <div><span>↺</span><section><b>استبدال واسترجاع</b><small>طبقًا لسياسة المتجر</small></section></div>
+   </div>
+   <div class="bundle"><h3>اشترِهم سوا من MaxiMus!</h3>${recommendations.slice(0,3).map(x=>`<label class="bundle-item"><input type="checkbox" value="${x.id}" onchange="toggleBundle(${x.id},this.checked)"><img src="${esc(x.images?.[0]||"")}" alt="${esc(x.name)}"><span>${esc(x.name)}<br><b>${fmt(x.price)}</b></span></label>`).join("")}</div>
+  </div>
+ </div>
+ <section class="pdp-recommendations"><div class="section-head"><div><span class="eyebrow">أكمل إطلالتك</span><h2 style="font-size:27px">منتجات قد تنال إعجابك</h2></div></div><div class="products">${recommendations.map(x=>`<div class="product-card"><img class="product-img" src="${esc(x.images?.[0]||"")}" alt="${esc(x.name)}" onclick="openProduct(${x.id})"><div class="product-info"><h3>${esc(x.name)}</h3><span class="price">${fmt(x.price)}</span></div></div>`).join("")}</div></section>`;
+ document.querySelectorAll("#pdpContent .color-option").forEach(button=>button.addEventListener("click",()=>{selectedColor=button.dataset.color;activeImage=0;renderPdp()}));
+}
 function toggleBundle(id,on){bundleSelected=on?[...bundleSelected,id]:bundleSelected.filter(x=>x!==id)}
-function addFromPdp(){if(Array.isArray(current.colors)&&current.colors.length&&!selectedColor){alert("من فضلك اختار اللون الأول.");return}cart.push({id:current.id,name:current.name,price:current.price,size:selectedSize,color:selectedColor||"—",qty:1});bundleSelected.forEach(id=>{let p=products.find(x=>x.id===id);cart.push({id:p.id,name:p.name,price:p.price,size:selectedSize,color:(p.colors||[]).includes(selectedColor)?selectedColor:((p.colors||[])[0]||"—"),qty:1})});updateCart();closeProduct();openCart()}
+function addFromPdp(){if(!current)return;if(Array.isArray(current.colors)&&current.colors.length&&!selectedColor){alert("من فضلك اختار اللون الأول.");return}if(selectedQty>Number(current.stock)){alert("الكمية المطلوبة أكبر من المتاح.");return}cart.push({id:current.id,name:current.name,price:current.price,size:selectedSize,color:selectedColor||"—",qty:selectedQty});bundleSelected.forEach(id=>{let p=products.find(x=>x.id===id);if(p)cart.push({id:p.id,name:p.name,price:p.price,size:selectedSize,color:(p.colors||[]).includes(selectedColor)?selectedColor:((p.colors||[])[0]||"—"),qty:1})});updateCart();closeProduct();openCart()}
 function makeMessage(items){let total=items.reduce((s,x)=>s+x.price*x.qty,0);let lines=items.map((x,i)=>`${i+1}. ${x.name} | المقاس: ${x.size} | اللون: ${x.color} | الكمية: ${x.qty} | ${fmt(x.price*x.qty)}`).join("\n");return `مرحبًا MaxiMus، أرغب في تأكيد الطلب:\n\n${lines}\n\nالإجمالي: ${fmt(total)}\n\nيرجى تأكيد التوفر وتفاصيل التوصيل.`}
-function buyNow(){if(!current)return;if(Array.isArray(current.colors)&&current.colors.length&&!selectedColor){alert("من فضلك اختار اللون الأول.");return}const items=[{id:current.id,name:current.name,price:current.price,size:selectedSize,color:selectedColor||"—",qty:1},...bundleSelected.map(id=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,price:p.price,size:selectedSize,color:(p.colors||[]).includes(selectedColor)?selectedColor:((p.colors||[])[0]||"—"),qty:1}})];cart=items;updateCart();closeProduct();checkout()}
+function buyNow(){if(!current)return;if(Array.isArray(current.colors)&&current.colors.length&&!selectedColor){alert("من فضلك اختار اللون الأول.");return}if(selectedQty>Number(current.stock)){alert("الكمية المطلوبة أكبر من المتاح.");return}const items=[{id:current.id,name:current.name,price:current.price,size:selectedSize,color:selectedColor||"—",qty:selectedQty},...bundleSelected.map(id=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,price:p.price,size:selectedSize,color:(p.colors||[]).includes(selectedColor)?selectedColor:((p.colors||[])[0]||"—"),qty:1}})];cart=items;updateCart();closeProduct();checkout()}
 function setMobileNavActive(){const hash=location.hash||"#home";document.querySelectorAll(".mobile-bottom-nav a").forEach(a=>a.classList.toggle("active",a.getAttribute("href")===hash||((hash==="#home"||hash==="")&&a.getAttribute("href")==="#home")))}window.addEventListener("hashchange",setMobileNavActive);document.addEventListener("DOMContentLoaded",setMobileNavActive);setMobileNavActive();
 function openCart(){document.getElementById("cartOverlay").classList.add("show");renderCart()}
 function closeCart(){document.getElementById("cartOverlay").classList.remove("show")}
