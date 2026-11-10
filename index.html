@@ -1175,8 +1175,9 @@ async function maxiLoadCheckoutOptions(){
   if(!p.error){const sel=document.getElementById("checkoutPaymentMethod");if(sel){const safe=(p.data||[]).filter(x=>!x.is_online);sel.innerHTML='<option value="Cash on delivery">الدفع عند الاستلام</option>'+safe.map(x=>'<option value="'+maxiEsc(x.name)+'">'+maxiEsc(x.name)+'</option>').join("")}}
  }catch(e){console.warn("Checkout continues with the existing shipping and cash-on-delivery settings.",e)}
 }
-function checkout(){
+async function checkout(){
  if(!cart.length){alert("سلة التسوق فارغة.");return}
+ await maxiLoadCheckoutOptions();
  const subtotal=cart.reduce((s,x)=>s+Number(x.price)*Number(x.qty),0);
  const zoneId=document.getElementById("checkoutShippingZone")?.value;
  const zone=maxiCheckoutZones.find(z=>String(z.id)===String(zoneId));
