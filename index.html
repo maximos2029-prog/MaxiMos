@@ -626,7 +626,7 @@ body.maxi-menu-open{overflow:hidden}
 .maxi-contact-form textarea{min-height:155px;resize:vertical}
 .maxi-contact-form input:focus,.maxi-contact-form textarea:focus{border-color:#0b5558;box-shadow:0 0 0 2px #0b55581a}
 .maxi-contact-form button{width:100%;border:1px solid #242424;border-radius:28px;background:#242424;color:#fff;padding:13px 18px;font-size:13px;cursor:pointer;margin-top:10px;transition:background .2s}
-.maxi-contact-form button:hover{background:#064e56;border-color:#064e56}
+.maxi-contact-form button:hover{background:#064e56;border-color:#064e56}.maxi-contact-form button:disabled{opacity:.65;cursor:wait}
 .maxi-contact-note{font-size:11px;color:#888;line-height:1.8;margin:2px 0 0;text-align:right}
 @media(max-width:700px){.maxi-contact-wrap{padding:34px 18px 50px;min-height:560px}.maxi-contact-wrap h1{font-size:23px}.maxi-contact-lead{font-size:12px}.maxi-contact-form{width:100%}.maxi-contact-form input{height:43px}.maxi-contact-form textarea{min-height:140px}}
 
@@ -701,8 +701,9 @@ body.maxi-menu-open{overflow:hidden}
    <input id="contactPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" required>
    <label for="contactMessage">رسالتك <span>(مطلوب)</span></label>
    <textarea id="contactMessage" name="message" rows="7" placeholder="اكتب رسالتك هنا..." required></textarea>
-   <button type="submit">إرسال الرسالة</button>
-   <p class="maxi-contact-note">بالضغط على إرسال، هتفتح رسالة واتساب جاهزة ببياناتك لفريق خدمة عملاء MaxiMus.</p>
+   <input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0">
+   <button id="maxiContactSubmit" type="submit">إرسال</button>
+   <p id="maxiContactStatus" class="maxi-contact-note" role="status" aria-live="polite">رسالتك هتتبعت مباشرة إلى maximos2029@gmail.com.</p>
   </form>
  </div>
 </section>
@@ -1544,18 +1545,46 @@ function syncMaxiStandalonePages(){
  if(contact)contact.hidden=!isContact;
  if(isPolicy||isContact)window.scrollTo(0,0);
 }
-function sendMaxiContact(event){
+async function sendMaxiContact(event){
  event.preventDefault();
  const form=document.getElementById("maxiContactForm");
+ const button=document.getElementById("maxiContactSubmit");
+ const status=document.getElementById("maxiContactStatus");
  if(!form||!form.reportValidity())return false;
  const data=new FormData(form);
- const name=String(data.get("name")||"").trim();
- const email=String(data.get("email")||"").trim();
- const phone=String(data.get("phone")||"").trim();
- const message=String(data.get("message")||"").trim();
- const text="رسالة جديدة من صفحة تواصل معنا - MaxiMus%0A"+"الاسم: "+name+"%0A"+"البريد الإلكتروني: "+email+"%0A"+"رقم الهاتف: "+phone+"%0A"+"الرسالة: "+message;
- const number=String(storeSettings?.whatsapp||"201030207079").replace(/\D/g,"");
- window.open("https://wa.me/"+number+"?text="+encodeURIComponent("رسالة جديدة من صفحة تواصل معنا - MaxiMus\nالاسم: "+name+"\nالبريد الإلكتروني: "+email+"\nرقم الهاتف: "+phone+"\nالرسالة: "+message),"_blank","noopener");
+ if(String(data.get("_honey")||"").trim())return false;
+ const payload={
+  name:String(data.get("name")||"").trim(),
+  email:String(data.get("email")||"").trim(),
+  phone:String(data.get("phone")||"").trim(),
+  message:String(data.get("message")||"").trim(),
+  _subject:"رسالة جديدة من موقع MaxiMus",
+  _template:"table",
+  _captcha:"false"
+ };
+ if(!payload.name||!payload.email||!payload.phone||!payload.message)return false;
+ button.disabled=true;
+ button.textContent="جاري الإرسال...";
+ status.textContent="بنرسل رسالتك دلوقتي...";
+ status.style.color="#777";
+ try{
+  const response=await fetch("https://formsubmit.co/ajax/maximos2029@gmail.com",{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Accept":"application/json"},
+   body:JSON.stringify(payload)
+  });
+  const result=await response.json();
+  if(!response.ok||String(result.success).toLowerCase()!=="true")throw new Error(result.message||"تعذر إرسال الرسالة");
+  status.textContent="تم إرسال رسالتك بنجاح. شكرًا لتواصلك مع MaxiMus.";
+  status.style.color="#16845b";
+  form.reset();
+ }catch(error){
+  status.textContent=error.message&&/activat/i.test(error.message)?"افتح بريد maximos2029@gmail.com واضغط رابط تفعيل نموذج التواصل، وبعدها جرّب الإرسال مرة تانية.":"مقدرناش نبعت الرسالة دلوقتي. حاول مرة تانية أو تواصل معنا على واتساب.";
+  status.style.color="#b42318";
+ }finally{
+  button.disabled=false;
+  button.textContent="إرسال";
+ }
  return false;
 }
 window.addEventListener("hashchange",syncMaxiStandalonePages);
