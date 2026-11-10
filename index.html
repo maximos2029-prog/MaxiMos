@@ -692,11 +692,14 @@ body.maxi-menu-open{overflow:hidden}
  <div class="maxi-contact-wrap">
   <h1>تواصل معنا</h1>
   <p class="maxi-contact-lead">يسعدنا نسمع منك. ابعتلنا رسالتك وفريق MaxiMus هيتواصل معاك في أقرب وقت.</p>
-  <form id="maxiContactForm" class="maxi-contact-form" onsubmit="return sendMaxiContact(event)">
+  <form id="maxiContactForm" class="maxi-contact-form" action="https://formsubmit.co/maximos2029@gmail.com" method="POST">
+   <input type="hidden" name="_subject" value="رسالة جديدة من موقع MaxiMus">
+   <input type="hidden" name="_template" value="table">
+   <input type="hidden" name="_captcha" value="false">
    <label for="contactName">الاسم <span>(مطلوب)</span></label>
    <input id="contactName" name="name" type="text" autocomplete="name" placeholder="اكتب اسمك" required>
    <label for="contactEmail">البريد الإلكتروني <span>(مطلوب)</span></label>
-   <input id="contactEmail" name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+   <input id="contactEmail" name="_replyto" type="email" autocomplete="email" placeholder="name@example.com" required>
    <label for="contactPhone">رقم الهاتف <span>(مطلوب)</span></label>
    <input id="contactPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" required>
    <label for="contactMessage">رسالتك <span>(مطلوب)</span></label>
@@ -1545,48 +1548,7 @@ function syncMaxiStandalonePages(){
  if(contact)contact.hidden=!isContact;
  if(isPolicy||isContact)window.scrollTo(0,0);
 }
-async function sendMaxiContact(event){
- event.preventDefault();
- const form=document.getElementById("maxiContactForm");
- const button=document.getElementById("maxiContactSubmit");
- const status=document.getElementById("maxiContactStatus");
- if(!form||!form.reportValidity())return false;
- const data=new FormData(form);
- if(String(data.get("_honey")||"").trim())return false;
- const payload={
-  name:String(data.get("name")||"").trim(),
-  email:String(data.get("email")||"").trim(),
-  phone:String(data.get("phone")||"").trim(),
-  message:String(data.get("message")||"").trim(),
-  _subject:"رسالة جديدة من موقع MaxiMus",
-  _template:"table",
-  _captcha:"false"
- };
- if(!payload.name||!payload.email||!payload.phone||!payload.message)return false;
- button.disabled=true;
- button.textContent="جاري الإرسال...";
- status.textContent="بنرسل رسالتك دلوقتي...";
- status.style.color="#777";
- try{
-  const response=await fetch("https://formsubmit.co/ajax/maximos2029@gmail.com",{
-   method:"POST",
-   headers:{"Content-Type":"application/json","Accept":"application/json"},
-   body:JSON.stringify(payload)
-  });
-  const result=await response.json();
-  if(!response.ok||String(result.success).toLowerCase()!=="true")throw new Error(result.message||"تعذر إرسال الرسالة");
-  status.textContent="تم إرسال رسالتك بنجاح. شكرًا لتواصلك مع MaxiMus.";
-  status.style.color="#16845b";
-  form.reset();
- }catch(error){
-  status.textContent=error.message&&/activat/i.test(error.message)?"افتح بريد maximos2029@gmail.com واضغط رابط تفعيل نموذج التواصل، وبعدها جرّب الإرسال مرة تانية.":"مقدرناش نبعت الرسالة دلوقتي. حاول مرة تانية أو تواصل معنا على واتساب.";
-  status.style.color="#b42318";
- }finally{
-  button.disabled=false;
-  button.textContent="إرسال";
- }
- return false;
-}
+
 window.addEventListener("hashchange",syncMaxiStandalonePages);
 document.addEventListener("DOMContentLoaded",syncMaxiStandalonePages);
 syncMaxiStandalonePages();
