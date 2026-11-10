@@ -1574,12 +1574,12 @@ async function sendMaxiContact(event){
    body:JSON.stringify(payload)
   });
   const result=await response.json();
-  if(!response.ok||result.success===false)throw new Error(result.message||"تعذر إرسال الرسالة");
+  if(!response.ok||String(result.success).toLowerCase()!=="true")throw new Error(result.message||"تعذر إرسال الرسالة");
   status.textContent="تم إرسال رسالتك بنجاح. شكرًا لتواصلك مع MaxiMus.";
   status.style.color="#16845b";
   form.reset();
  }catch(error){
-  status.textContent="مقدرناش نبعت الرسالة دلوقتي. حاول مرة تانية أو تواصل معنا على واتساب.";
+  status.textContent=error.message&&/activat/i.test(error.message)?"افتح بريد maximos2029@gmail.com واضغط رابط تفعيل نموذج التواصل، وبعدها جرّب الإرسال مرة تانية.":"مقدرناش نبعت الرسالة دلوقتي. حاول مرة تانية أو تواصل معنا على واتساب.";
   status.style.color="#b42318";
  }finally{
   button.disabled=false;
