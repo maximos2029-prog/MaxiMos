@@ -1560,22 +1560,38 @@ async function sendMaxiContactNow(){
  const email=form.elements.email.value.trim();
  const phone=form.elements.phone.value.trim();
  const message=form.elements.message.value.trim();
- if(!name||!email||!phone||!message){status.textContent="من فضلك املأ كل البيانات المطلوبة.";status.style.color="#b42318";return}
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){status.textContent="اكتب بريد إلكتروني صحيح.";status.style.color="#b42318";return}
+ const show=(text,color)=>{status.textContent=text;status.style.color=color};
+ if(!name||!email||!phone||!message){show("من فضلك املأ كل البيانات المطلوبة.","#b42318");return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){show("اكتب بريد إلكتروني صحيح.","#b42318");return}
  button.disabled=true;button.textContent="جاري الإرسال...";
- status.textContent="جاري إرسال رسالتك...";
- status.style.color="#777";
+ show("جاري إرسال رسالتك إلى فريق MaxiMus...","#777");
  try{
-  const body=new URLSearchParams({name,email,phone,message,_subject:"رسالة جديدة من موقع MaxiMus",_template:"table",_captcha:"false"});
-  const response=await fetch("https://formsubmit.co/ajax/maximos2029@gmail.com",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/x-www-form-urlencoded"},body:body.toString()});
-  const result=await response.json();
-  if(!response.ok||String(result.success).toLowerCase()!=="true")throw new Error(result.message||"تعذر إرسال الرسالة");
-  status.textContent="تم إرسال رسالتك. راجع بريدك لتأكيد استقبال الرسائل إذا كانت أول مرة.";
-  status.style.color="#16845b";form.reset();
+  const payload={
+   name,email,phone,message,
+   _subject:"رسالة جديدة من موقع MaxiMus",
+   _replyto:email,
+   _template:"table",
+   _captcha:"false",
+   _url:location.href
+  };
+  const response=await fetch("https://formsubmit.co/ajax/maximos2029@gmail.com",{
+   method:"POST",
+   headers:{"Accept":"application/json","Content-Type":"application/json"},
+   body:JSON.stringify(payload)
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||String(result.success).toLowerCase()!=="true"){
+   throw new Error(result.message||("تعذر الإرسال (HTTP "+response.status+")"));
+  }
+  show("تم إرسال طلبك بنجاح. إذا كانت أول مرة تستخدم النموذج، افتح رسالة التفعيل التي وصلت إلى بريد الموقع وأكّدها مرة واحدة.","#16845b");
+  form.reset();
  }catch(error){
-  status.textContent="تعذر إرسال الرسالة الآن. تأكد من اتصال الإنترنت، وإذا كانت أول مرة ففعّل FormSubmit من رسالة البريد.";
-  status.style.color="#b42318";
- }finally{button.disabled=false;button.textContent="إرسال"}
+  console.error("MaxiMus contact form error:",error);
+  show("لم يتم إرسال الرسالة. "+(error.message||"تحقق من الإنترنت وحاول مرة أخرى."),"#b42318");
+ }finally{
+  button.disabled=false;
+  button.textContent="إرسال";
+ }
 }
 window.addEventListener("hashchange",syncMaxiStandalonePages);
 document.addEventListener("DOMContentLoaded",syncMaxiStandalonePages);
