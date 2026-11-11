@@ -1381,206 +1381,6 @@ async function maxiInvoice(id){
  const w=window.open("","_blank");
  if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${maxiEsc(inv.data.invoice_number)}</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMUS</h1><p>INVOICE ${maxiEsc(inv.data.invoice_number)}</p><hr><p>${maxiEsc(s.customer?.name)} | ${maxiEsc(s.customer?.phone)}<br>${maxiEsc(s.customer?.address)}</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${rows}</table><p class="total">Total: ${maximosMoney(s.total)}</p><script>window.onload=()=>window.print()<\/script>
-<script>
-/* MaxiMus: private transfer proof uploads, order thank-you, and persistent store reviews. */
-window.maxiShowPaymentInfo = function(){
- const box=document.getElementById("checkoutPaymentInfo");if(!box)return;
- const selected=document.querySelector('input[name="paymentMethod"]:checked');
- const method=selected?.value||"Cash on delivery";
- const cfg=window.maxiCheckoutMethods?.find(x=>x.name===method)?.public_config||{};
- if(method==="Cash on delivery"){
-  box.innerHTML='<small>ادفع قيمة طلبك عند استلامه.</small>';
-  return;
- }
- box.innerHTML='<b>تعليمات التحويل</b><p>'+esc(cfg.instructions||"حوّل قيمة الطلب إلى بيانات الدفع الموضحة، ثم ارفع صورة التحويل.")+'</p>'
-  +(cfg.account_number?'<p><b>رقم المحفظة / عنوان الدفع:</b> '+esc(cfg.account_number)+'</p>':'')
-  +'<label class="maxi-proof-upload">صورة إثبات التحويل <input type="file" name="payment_proof" id="checkoutPaymentProof" accept="image/jpeg,image/png,image/webp" required><small>ارفع صورة واضحة للتحويل (JPG أو PNG أو WEBP) بحد أقصى 5 ميجابايت.</small></label>';
-};
-window.recordOrder = async function(items,details){
- try{await ensureSupabase()}catch(e){alert(e.message||String(e));return null}
- const name=String(details?.name||"").trim(),phone=String(details?.phone||"").trim(),address=String(details?.address||"").trim();
- if(!name||!phone||!address){alert("من فضلك استكمل الاسم ورقم الموبايل وعنوان التوصيل.");return null}
- for(const item of items){
-  const p=products.find(x=>Number(x.id)===Number(item.id));
-  if(!p||Number(p.stock)<Number(item.qty)){alert("الكمية المتاحة اتغيرت للمنتج "+(item.name||"")+"، حدّث السلة وحاول تاني.");return null}
- }
- const subtotal=items.reduce((s,x)=>s+Number(x.price)*Number(x.qty),0);
- const fee=shippingQuote(subtotal),total=subtotal+(fee===null?0:fee);
- const paymentMethod=String(details.paymentMethod||"Cash on delivery");
- if(paymentMethod!=="Cash on delivery"){
-  const allowed=await supabaseClient.from("payment_methods").select("id,is_online").eq("name",paymentMethod).eq("enabled",true).maybeSingle();
-  if(allowed.error||!allowed.data||allowed.data.is_online){alert("طريقة الدفع دي غير متاحة حاليًا. اختار وسيلة متاحة.");return null}
- }
- let proofPath=null;
- if(paymentMethod!=="Cash on delivery"){
-  const file=details.payment_proof;
-  if(!(file instanceof File)||!file.size){alert("ارفع صورة إثبات التحويل قبل تأكيد الطلب.");return null}
-  if(!["image/jpeg","image/png","image/webp"].includes(file.type)){alert("نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WEBP.");return null}
-  if(file.size>5*1024*1024){alert("حجم الصورة أكبر من 5 ميجابايت. اختر صورة أصغر.");return null}
-  const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
-  const token=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2));
-  proofPath="pending/"+token+"."+ext;
-  const uploaded=await supabaseClient.storage.from("payment-proofs").upload(proofPath,file,{cacheControl:"3600",upsert:false,contentType:file.type});
-  if(uploaded.error){alert("تعذر رفع صورة التحويل: "+uploaded.error.message);return null}
- }
- const customer={name,phone,address,payment_method:paymentMethod,shipping_fee:fee,shipping_status:fee===null?"To be confirmed":"Calculated",shipping_zone:null};
- const {error:customerError}=await supabaseClient.from("customers").insert({name,phone,address});
- if(customerError&&customerError.code!=="23505"){alert("تعذر حفظ بيانات العميل: "+customerError.message);return null}
- const orderItems=JSON.parse(JSON.stringify(items));
- const {error}=await supabaseClient.from("orders").insert({
-  customer,items:orderItems,subtotal,shipping_fee:fee??0,total,status:"New",
-  payment_method:paymentMethod,payment_status:"pending",payment_proof_path:proofPath
- });
- if(error){alert("تعذر حفظ الطلب: "+error.message);return null}
- const order={id:"Submitted",createdAt:new Date().toISOString(),customer,items:orderItems,total,subtotal,shipping_fee:fee,status:"New",stock_deducted:false,payment_method:paymentMethod,payment_proof_path:proofPath};
- orders.unshift(order);
- if(!customers.some(c=>c.phone===phone))customers.push({name,phone,address});
- return order;
-};
-function maxiEnsureThankYouUI(){
- if(document.getElementById("maxiThankYouOverlay"))return;
- const style=document.createElement("style");
- style.textContent='.maxi-thanks-overlay{position:fixed;inset:0;z-index:10050;background:#171914b8;display:none;align-items:center;justify-content:center;padding:18px;direction:rtl}.maxi-thanks-overlay.open{display:flex}.maxi-thanks-card{width:min(100%,520px);max-height:90vh;overflow:auto;background:#fffdf8;padding:30px 24px;text-align:center;border:1px solid #e8e2d6;box-shadow:0 20px 70px #0003}.maxi-thanks-card h2{font-size:27px;margin:8px 0 10px;color:#293126}.maxi-thanks-card p{color:#6f7169;line-height:1.8}.maxi-thanks-check{width:54px;height:54px;margin:auto;border-radius:50%;display:grid;place-items:center;background:#e8eee4;color:#40533a;font-size:28px}.maxi-review-stars{display:flex;justify-content:center;gap:8px;margin:18px 0}.maxi-review-stars button{border:0;background:transparent;color:#c8c5bb;font-size:34px;padding:2px;cursor:pointer}.maxi-review-stars button.selected{color:#c59a32}.maxi-review-comment{width:100%;min-height:90px;padding:12px;border:1px solid #ddd;margin:8px 0 14px;direction:rtl}.maxi-thanks-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}.maxi-thanks-actions a,.maxi-thanks-actions button{padding:12px 18px;background:#414a38;color:white;text-decoration:none;border:0;cursor:pointer}.maxi-thanks-actions .light{background:#eeeae1;color:#34382f}.maxi-proof-upload{display:block;margin-top:14px;padding:12px;background:#f6f4ee;border:1px solid #e8e3d9}.maxi-proof-upload input{display:block;width:100%;margin:9px 0}.maxi-proof-upload small{display:block;color:#777;font-size:11px}';
- document.head.appendChild(style);
- const overlay=document.createElement("div");
- overlay.id="maxiThankYouOverlay";overlay.className="maxi-thanks-overlay";
- overlay.innerHTML='<section class="maxi-thanks-card"><div class="maxi-thanks-check">✓</div><p class="eyebrow">MAXIMUS</p><h2>شكرًا لطلبك!</h2><p id="maxiThanksMessage">استلمنا طلبك بنجاح، وفريقنا هيتواصل معاك لتأكيد التفاصيل.</p><div id="maxiReviewArea"><div class="divider"></div><h3>إيه رأيك في تجربة التسوق؟</h3><p>تقييمك يساعدنا نطوّر MaxiMus ونقدم لك تجربة أفضل.</p><form id="maxiReviewForm" onsubmit="submitMaxiStoreReview(event)"><input type="hidden" id="maxiReviewRating" value="5"><div class="maxi-review-stars" aria-label="تقييم من نجمة إلى خمس نجوم"><button type="button" class="selected" onclick="setMaxiReviewRating(1)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(2)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(3)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(4)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(5)">★</button></div><input id="maxiReviewName" required maxlength="60" placeholder="اسمك" style="width:100%;padding:12px;border:1px solid #ddd;direction:rtl"><textarea id="maxiReviewComment" class="maxi-review-comment" maxlength="600" placeholder="اكتب رأيك أو اقتراحك (اختياري)"></textarea><button type="submit" class="checkout-submit" id="maxiReviewSubmit">إرسال التقييم</button><p id="maxiReviewStatus" role="status"></p></form></div><div class="maxi-thanks-actions"><a id="maxiThanksWhatsApp" href="#" target="_blank" rel="noopener" style="display:none">متابعة واتساب</a><button type="button" class="light" onclick="closeMaxiThankYou()">العودة للمتجر</button></div></section>';
- document.body.appendChild(overlay);
-}
-window.setMaxiReviewRating=function(rating){
- rating=Math.max(1,Math.min(5,Number(rating)||5));
- const input=document.getElementById("maxiReviewRating");if(input)input.value=String(rating);
- document.querySelectorAll(".maxi-review-stars button").forEach((b,i)=>b.classList.toggle("selected",i<rating));
-};
-window.showMaxiThankYou=function(name,whatsappUrl){
- maxiEnsureThankYouUI();
- const msg=document.getElementById("maxiThanksMessage");
- if(msg)msg.textContent="استلمنا طلبك يا "+(name||"عميلنا العزيز")+" بنجاح. فريق MaxiMus هيتواصل معاك لتأكيد التفاصيل.";
- const nm=document.getElementById("maxiReviewName");if(nm)nm.value=name||"";
- const wa=document.getElementById("maxiThanksWhatsApp");
- if(wa){wa.href=whatsappUrl||"#";wa.style.display=whatsappUrl?"inline-flex":"none"}
- const status=document.getElementById("maxiReviewStatus");if(status)status.textContent="";
- const area=document.getElementById("maxiReviewArea");if(area)area.style.display="";
- const form=document.getElementById("maxiReviewForm");if(form){form.reset();document.getElementById("maxiReviewRating").value="5";setMaxiReviewRating(5)}
- document.getElementById("maxiThankYouOverlay").classList.add("open");
-};
-window.closeMaxiThankYou=function(){document.getElementById("maxiThankYouOverlay")?.classList.remove("open")};
-window.submitMaxiStoreReview=async function(event){
- event.preventDefault();
- const button=document.getElementById("maxiReviewSubmit"),status=document.getElementById("maxiReviewStatus");
- const name=String(document.getElementById("maxiReviewName")?.value||"").trim();
- const rating=Number(document.getElementById("maxiReviewRating")?.value||0);
- const comment=String(document.getElementById("maxiReviewComment")?.value||"").trim();
- if(name.length<2||rating<1||rating>5){if(status)status.textContent="اكتب اسمك واختار تقييم من نجمة إلى خمس نجوم.";return}
- button.disabled=true;button.textContent="جاري إرسال التقييم...";
- try{
-  await ensureSupabase();
-  const {error}=await supabaseClient.from("store_reviews").insert({display_name:name,rating,comment,approved:false});
-  if(error)throw error;
-  document.getElementById("maxiReviewArea").innerHTML='<h3>شكرًا على تقييمك ❤️</h3><p>وصلنا رأيك، وهيظهر على الموقع بعد مراجعته.</p>';
- }catch(e){if(status)status.textContent="تعذر إرسال التقييم: "+(e.message||String(e));button.disabled=false;button.textContent="إرسال التقييم"}
-};
-window.maxiLoadPublicReviews=async function(){
- try{
-  await ensureSupabase();
-  const {data,error}=await supabaseClient.from("store_reviews").select("display_name,rating,comment,created_at").eq("approved",true).order("created_at",{ascending:false}).limit(12);
-  if(error)throw error;
-  const box=document.getElementById("reviewCards");if(!box)return;
-  if(!data?.length)return;
-  box.innerHTML=data.map(r=>'<article class="review"><div class="stars">'+("★".repeat(Number(r.rating)||0))+("☆".repeat(5-(Number(r.rating)||0)))+'</div><h4>'+esc(r.display_name)+'</h4><p>'+esc(r.comment||"تجربة ممتازة مع MaxiMus.")+'</p></article>').join("");
- }catch(e){console.warn("MaxiMus public reviews could not load:",e)}
-};
-window.maxiRenderReviews=async function(root){
- const rows=await maxiRows("store_reviews","created_at");
- const html=rows.map(r=>'<tr><td>'+maxiEsc(r.display_name)+'</td><td>'+("★".repeat(Number(r.rating)||0))+'</td><td>'+maxiEsc(r.comment||"—")+'</td><td>'+(r.approved?"منشور":"بانتظار المراجعة")+'</td><td>'+maxiActions([maxiButton(r.approved?"إخفاء":"نشر","maxiSetReviewApproval("+r.id+","+(!r.approved)+")"),maxiButton("حذف","maxiDeleteStoreReview("+r.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("");
- root.innerHTML='<span class="eyebrow">CUSTOMER FEEDBACK</span><h1 class="admin-title">تقييمات المتجر</h1><p class="admin-muted">راجع تقييمات العملاء، وانشر المناسب منها على واجهة MaxiMus أو أخفِها.</p>'+maxiTable(["العميل","التقييم","التعليق","الحالة","التحكم"],html||'<tr><td colspan="5">لا توجد تقييمات حتى الآن.</td></tr>');
-};
-window.maxiSetReviewApproval=async function(id,approved){
- const {error}=await supabaseClient.from("store_reviews").update({approved}).eq("id",id);
- if(error){maxiError(error);return}
- maxiRenderReviews(document.getElementById("adminContent"));maxiLoadPublicReviews();
-};
-window.maxiDeleteStoreReview=async function(id){
- if(!confirm("تأكيد حذف التقييم؟"))return;
- const {error}=await supabaseClient.from("store_reviews").delete().eq("id",id);
- if(error){maxiError(error);return}
- maxiRenderReviews(document.getElementById("adminContent"));maxiLoadPublicReviews();
-};
-window.maxiViewPaymentProof=async function(orderId){
- const tab=window.open("about:blank","_blank");
- try{
-  const {data:o,error}=await supabaseClient.from("orders").select("payment_proof_path").eq("id",orderId).single();
-  if(error)throw error;
-  if(!o.payment_proof_path)throw new Error("لا توجد صورة إثبات تحويل لهذا الطلب.");
-  const {data,error:signError}=await supabaseClient.storage.from("payment-proofs").createSignedUrl(o.payment_proof_path,600);
-  if(signError)throw signError;
-  if(tab)tab.location.href=data.signedUrl;else alert("اسمح بفتح نافذة جديدة لعرض الصورة.");
- }catch(e){if(tab)tab.close();maxiError(e)}
-};
-window.maxiSetOrderPaymentStatus=async function(orderId,status){
- if(!["pending","paid","failed"].includes(status))return;
- const {error}=await supabaseClient.from("orders").update({payment_status:status,updated_at:new Date().toISOString()}).eq("id",orderId);
- if(error){maxiError(error);return}
- alert(status==="paid"?"تم تسجيل تأكيد الدفع.":status==="failed"?"تم تسجيل رفض إثبات الدفع.":"تم إرجاع حالة الدفع إلى قيد المراجعة.");
- maxiLoadPage("payments");
-};
-const maxiOriginalRenderPayments=window.maxiRenderPayments;
-window.maxiRenderPayments=async function(root){
- await maxiOriginalRenderPayments(root);
- const {data,error}=await supabaseClient.from("orders").select("id,customer,total,payment_method,payment_status,payment_proof_path,created_at").not("payment_proof_path","is",null).order("created_at",{ascending:false}).limit(100);
- if(error)throw error;
- const rows=(data||[]).map(o=>'<tr><td>#'+o.id+'</td><td>'+maxiEsc(o.customer?.name||"—")+'<br><small>'+maxiEsc(o.customer?.phone||"")+'</small></td><td>'+maxiEsc(o.payment_method||"—")+'</td><td>'+maximosMoney(o.total)+'</td><td>'+maxiActions([maxiButton("عرض صورة التحويل","maxiViewPaymentProof("+o.id+")")])+'</td><td><select onchange="maxiSetOrderPaymentStatus('+o.id+',this.value)"><option value="pending" '+(o.payment_status==="pending"?"selected":"")+'>قيد المراجعة</option><option value="paid" '+(o.payment_status==="paid"?"selected":"")+'>تم التأكيد</option><option value="failed" '+(o.payment_status==="failed"?"selected":"")+'>مرفوض</option></select></td></tr>').join("");
- root.insertAdjacentHTML("beforeend",'<div class="maxi-card" style="margin-top:24px"><h3>إثباتات التحويل المرسلة من العملاء</h3><p class="admin-muted">افتح الصورة وراجع التحويل من حساب المحفظة قبل تغيير حالة الدفع إلى تم التأكيد.</p>'+maxiTable(["الطلب","العميل","طريقة الدفع","المبلغ","الصورة","حالة الدفع"],rows||'<tr><td colspan="6">لا توجد صور تحويل مرفوعة حتى الآن.</td></tr>')+'</div>');
-};
-const maxiOriginalOrderDetails=window.maxiOrderDetails;
-window.maxiOrderDetails=async function(id){
- const {data:o,error}=await supabaseClient.from("orders").select("*").eq("id",id).single();
- if(error){maxiError(error);return}
- const items=(o.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+maxiEsc(i.size||"—")+'</td><td>'+maxiEsc(i.color||"—")+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td></tr>').join("");
- const proof=o.payment_proof_path?maxiButton("عرض صورة إثبات التحويل","maxiViewPaymentProof("+id+")"):'<p class="maxi-muted">لا توجد صورة إثبات تحويل مرفقة.</p>';
- maxiOpenModal("تفاصيل الطلب #"+id,'<div class="maxi-card"><b>العميل:</b> '+maxiEsc(o.customer?.name)+'<br><b>الهاتف:</b> '+maxiEsc(o.customer?.phone)+'<br><b>العنوان:</b> '+maxiEsc(o.customer?.address)+'<br><b>الحالة:</b> '+maxiEsc(o.status)+'<br><b>الدفع:</b> '+maxiEsc(o.payment_method)+' / '+maxiEsc(o.payment_status)+'</div><div class="maxi-card">'+proof+'</div>'+maxiTable(["المنتج","المقاس","اللون","الكمية","السعر"],items)+'<p><b>الإجمالي: '+maximosMoney(o.total)+'</b></p><p class="maxi-muted">ملاحظات الإلغاء: '+maxiEsc(o.cancellation_reason||"—")+'</p>');
-};
-const maxiOriginalRenderAdmin=window.renderAdmin;
-window.renderAdmin=function(tab){
- const side=document.querySelector(".admin-side");
- if(side&&!side.querySelector('[data-tab="reviews"]')){
-  const b=document.createElement("button");b.className="admin-tab";b.dataset.tab="reviews";b.textContent="★ Reviews";b.onclick=()=>showAdminTab("reviews");side.appendChild(b);
- }
- const reviewTab=side?.querySelector('[data-tab="reviews"]');
- if(reviewTab)reviewTab.style.display=maxiCan("store.manage")?"":"none";
- if(tab==="reviews"){
-  if(!adminAuthenticated)return;
-  if(!maxiCan("store.manage")){alert("ليس لديك صلاحية لفتح هذا القسم.");return}
-  document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab==="reviews"));
-  maxiRenderReviews(document.getElementById("adminContent")).catch(maxiError);
-  return;
- }
- return maxiOriginalRenderAdmin(tab);
-};
-window.submitCheckout=async function(event){
- event.preventDefault();
- if(!cart.length){alert("سلة التسوق فارغة.");return}
- const form=event.currentTarget;
- const values=Object.fromEntries(new FormData(form).entries());
- values.name=[values.first_name,values.last_name].filter(Boolean).join(" ").trim();
- values.address=[values.street_address,values.city,values.governorate,values.postal_code,values.country].filter(Boolean).join("، ");
- const phone=String(values.phone||"").replace(/[\s()-]/g,"");
- if(!/^\+?[0-9]{10,15}$/.test(phone)){alert("من فضلك أدخل رقم موبايل صحيح.");return}
- const button=form.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="جاري تأكيد الطلب..."}
- const popup=window.open("about:blank","_blank");
- try{
-  const order=await recordOrder(cart,{...values,phone});
-  if(!order){if(popup)popup.close();return}
-  let message=makeMessage(order.items)+"\n\nالعميل: "+order.customer.name+"\nالبريد الإلكتروني: "+(order.customer.email||"غير مضاف")+"\nرقم الموبايل: "+order.customer.phone+"\nالعنوان: "+order.customer.address+"\nطريقة الشحن: "+(order.customer.shipping_method||"Standard Shipping")+"\nطريقة الدفع: "+order.customer.payment_method+"\nالشحن: "+(order.customer.shipping_fee===null?"يتم التأكيد":order.customer.shipping_fee===0?"مجاني":fmt(order.customer.shipping_fee))+"\nتم استلام طلب جديد من موقع MaxiMus.";
-  const url="https://wa.me/"+(storeSettings.whatsapp||"201030207079")+"?text="+encodeURIComponent(message);
-  if(popup)popup.location.href=url;
-  cart=[];updateCart();form.reset();closeCheckout();closeCart();
-  showMaxiThankYou(order.customer.name,url);
- }catch(e){if(popup)popup.close();alert("تعذر إكمال الطلب: "+(e.message||String(e)))}
- finally{if(button){button.disabled=false;button.textContent="تأكيد الطلب والمتابعة إلى واتساب"}}
-};
-setTimeout(maxiLoadPublicReviews,1800);
-</script>
 
 </body></html>`);
  w.document.close();
@@ -1898,4 +1698,204 @@ syncMaxiStandalonePages();
 
 </script>
 
+<script>
+/* MaxiMus: private transfer proof uploads, order thank-you, and persistent store reviews. */
+window.maxiShowPaymentInfo = function(){
+ const box=document.getElementById("checkoutPaymentInfo");if(!box)return;
+ const selected=document.querySelector('input[name="paymentMethod"]:checked');
+ const method=selected?.value||"Cash on delivery";
+ const cfg=window.maxiCheckoutMethods?.find(x=>x.name===method)?.public_config||{};
+ if(method==="Cash on delivery"){
+  box.innerHTML='<small>ادفع قيمة طلبك عند استلامه.</small>';
+  return;
+ }
+ box.innerHTML='<b>تعليمات التحويل</b><p>'+esc(cfg.instructions||"حوّل قيمة الطلب إلى بيانات الدفع الموضحة، ثم ارفع صورة التحويل.")+'</p>'
+  +(cfg.account_number?'<p><b>رقم المحفظة / عنوان الدفع:</b> '+esc(cfg.account_number)+'</p>':'')
+  +'<label class="maxi-proof-upload">صورة إثبات التحويل <input type="file" name="payment_proof" id="checkoutPaymentProof" accept="image/jpeg,image/png,image/webp" required><small>ارفع صورة واضحة للتحويل (JPG أو PNG أو WEBP) بحد أقصى 5 ميجابايت.</small></label>';
+};
+window.recordOrder = async function(items,details){
+ try{await ensureSupabase()}catch(e){alert(e.message||String(e));return null}
+ const name=String(details?.name||"").trim(),phone=String(details?.phone||"").trim(),address=String(details?.address||"").trim();
+ if(!name||!phone||!address){alert("من فضلك استكمل الاسم ورقم الموبايل وعنوان التوصيل.");return null}
+ for(const item of items){
+  const p=products.find(x=>Number(x.id)===Number(item.id));
+  if(!p||Number(p.stock)<Number(item.qty)){alert("الكمية المتاحة اتغيرت للمنتج "+(item.name||"")+"، حدّث السلة وحاول تاني.");return null}
+ }
+ const subtotal=items.reduce((s,x)=>s+Number(x.price)*Number(x.qty),0);
+ const fee=shippingQuote(subtotal),total=subtotal+(fee===null?0:fee);
+ const paymentMethod=String(details.paymentMethod||"Cash on delivery");
+ if(paymentMethod!=="Cash on delivery"){
+  const allowed=await supabaseClient.from("payment_methods").select("id,is_online").eq("name",paymentMethod).eq("enabled",true).maybeSingle();
+  if(allowed.error||!allowed.data||allowed.data.is_online){alert("طريقة الدفع دي غير متاحة حاليًا. اختار وسيلة متاحة.");return null}
+ }
+ let proofPath=null;
+ if(paymentMethod!=="Cash on delivery"){
+  const file=details.payment_proof;
+  if(!(file instanceof File)||!file.size){alert("ارفع صورة إثبات التحويل قبل تأكيد الطلب.");return null}
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)){alert("نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WEBP.");return null}
+  if(file.size>5*1024*1024){alert("حجم الصورة أكبر من 5 ميجابايت. اختر صورة أصغر.");return null}
+  const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+  const token=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2));
+  proofPath="pending/"+token+"."+ext;
+  const uploaded=await supabaseClient.storage.from("payment-proofs").upload(proofPath,file,{cacheControl:"3600",upsert:false,contentType:file.type});
+  if(uploaded.error){alert("تعذر رفع صورة التحويل: "+uploaded.error.message);return null}
+ }
+ const customer={name,phone,address,payment_method:paymentMethod,shipping_fee:fee,shipping_status:fee===null?"To be confirmed":"Calculated",shipping_zone:null};
+ const {error:customerError}=await supabaseClient.from("customers").insert({name,phone,address});
+ if(customerError&&customerError.code!=="23505"){alert("تعذر حفظ بيانات العميل: "+customerError.message);return null}
+ const orderItems=JSON.parse(JSON.stringify(items));
+ const {error}=await supabaseClient.from("orders").insert({
+  customer,items:orderItems,subtotal,shipping_fee:fee??0,total,status:"New",
+  payment_method:paymentMethod,payment_status:"pending",payment_proof_path:proofPath
+ });
+ if(error){alert("تعذر حفظ الطلب: "+error.message);return null}
+ const order={id:"Submitted",createdAt:new Date().toISOString(),customer,items:orderItems,total,subtotal,shipping_fee:fee,status:"New",stock_deducted:false,payment_method:paymentMethod,payment_proof_path:proofPath};
+ orders.unshift(order);
+ if(!customers.some(c=>c.phone===phone))customers.push({name,phone,address});
+ return order;
+};
+function maxiEnsureThankYouUI(){
+ if(document.getElementById("maxiThankYouOverlay"))return;
+ const style=document.createElement("style");
+ style.textContent='.maxi-thanks-overlay{position:fixed;inset:0;z-index:10050;background:#171914b8;display:none;align-items:center;justify-content:center;padding:18px;direction:rtl}.maxi-thanks-overlay.open{display:flex}.maxi-thanks-card{width:min(100%,520px);max-height:90vh;overflow:auto;background:#fffdf8;padding:30px 24px;text-align:center;border:1px solid #e8e2d6;box-shadow:0 20px 70px #0003}.maxi-thanks-card h2{font-size:27px;margin:8px 0 10px;color:#293126}.maxi-thanks-card p{color:#6f7169;line-height:1.8}.maxi-thanks-check{width:54px;height:54px;margin:auto;border-radius:50%;display:grid;place-items:center;background:#e8eee4;color:#40533a;font-size:28px}.maxi-review-stars{display:flex;justify-content:center;gap:8px;margin:18px 0}.maxi-review-stars button{border:0;background:transparent;color:#c8c5bb;font-size:34px;padding:2px;cursor:pointer}.maxi-review-stars button.selected{color:#c59a32}.maxi-review-comment{width:100%;min-height:90px;padding:12px;border:1px solid #ddd;margin:8px 0 14px;direction:rtl}.maxi-thanks-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}.maxi-thanks-actions a,.maxi-thanks-actions button{padding:12px 18px;background:#414a38;color:white;text-decoration:none;border:0;cursor:pointer}.maxi-thanks-actions .light{background:#eeeae1;color:#34382f}.maxi-proof-upload{display:block;margin-top:14px;padding:12px;background:#f6f4ee;border:1px solid #e8e3d9}.maxi-proof-upload input{display:block;width:100%;margin:9px 0}.maxi-proof-upload small{display:block;color:#777;font-size:11px}';
+ document.head.appendChild(style);
+ const overlay=document.createElement("div");
+ overlay.id="maxiThankYouOverlay";overlay.className="maxi-thanks-overlay";
+ overlay.innerHTML='<section class="maxi-thanks-card"><div class="maxi-thanks-check">✓</div><p class="eyebrow">MAXIMUS</p><h2>شكرًا لطلبك!</h2><p id="maxiThanksMessage">استلمنا طلبك بنجاح، وفريقنا هيتواصل معاك لتأكيد التفاصيل.</p><div id="maxiReviewArea"><div class="divider"></div><h3>إيه رأيك في تجربة التسوق؟</h3><p>تقييمك يساعدنا نطوّر MaxiMus ونقدم لك تجربة أفضل.</p><form id="maxiReviewForm" onsubmit="submitMaxiStoreReview(event)"><input type="hidden" id="maxiReviewRating" value="5"><div class="maxi-review-stars" aria-label="تقييم من نجمة إلى خمس نجوم"><button type="button" class="selected" onclick="setMaxiReviewRating(1)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(2)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(3)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(4)">★</button><button type="button" class="selected" onclick="setMaxiReviewRating(5)">★</button></div><input id="maxiReviewName" required maxlength="60" placeholder="اسمك" style="width:100%;padding:12px;border:1px solid #ddd;direction:rtl"><textarea id="maxiReviewComment" class="maxi-review-comment" maxlength="600" placeholder="اكتب رأيك أو اقتراحك (اختياري)"></textarea><button type="submit" class="checkout-submit" id="maxiReviewSubmit">إرسال التقييم</button><p id="maxiReviewStatus" role="status"></p></form></div><div class="maxi-thanks-actions"><a id="maxiThanksWhatsApp" href="#" target="_blank" rel="noopener" style="display:none">متابعة واتساب</a><button type="button" class="light" onclick="closeMaxiThankYou()">العودة للمتجر</button></div></section>';
+ document.body.appendChild(overlay);
+}
+window.setMaxiReviewRating=function(rating){
+ rating=Math.max(1,Math.min(5,Number(rating)||5));
+ const input=document.getElementById("maxiReviewRating");if(input)input.value=String(rating);
+ document.querySelectorAll(".maxi-review-stars button").forEach((b,i)=>b.classList.toggle("selected",i<rating));
+};
+window.showMaxiThankYou=function(name,whatsappUrl){
+ maxiEnsureThankYouUI();
+ const msg=document.getElementById("maxiThanksMessage");
+ if(msg)msg.textContent="استلمنا طلبك يا "+(name||"عميلنا العزيز")+" بنجاح. فريق MaxiMus هيتواصل معاك لتأكيد التفاصيل.";
+ const nm=document.getElementById("maxiReviewName");if(nm)nm.value=name||"";
+ const wa=document.getElementById("maxiThanksWhatsApp");
+ if(wa){wa.href=whatsappUrl||"#";wa.style.display=whatsappUrl?"inline-flex":"none"}
+ const status=document.getElementById("maxiReviewStatus");if(status)status.textContent="";
+ const area=document.getElementById("maxiReviewArea");if(area)area.style.display="";
+ const form=document.getElementById("maxiReviewForm");if(form){form.reset();document.getElementById("maxiReviewRating").value="5";setMaxiReviewRating(5)}
+ document.getElementById("maxiThankYouOverlay").classList.add("open");
+};
+window.closeMaxiThankYou=function(){document.getElementById("maxiThankYouOverlay")?.classList.remove("open")};
+window.submitMaxiStoreReview=async function(event){
+ event.preventDefault();
+ const button=document.getElementById("maxiReviewSubmit"),status=document.getElementById("maxiReviewStatus");
+ const name=String(document.getElementById("maxiReviewName")?.value||"").trim();
+ const rating=Number(document.getElementById("maxiReviewRating")?.value||0);
+ const comment=String(document.getElementById("maxiReviewComment")?.value||"").trim();
+ if(name.length<2||rating<1||rating>5){if(status)status.textContent="اكتب اسمك واختار تقييم من نجمة إلى خمس نجوم.";return}
+ button.disabled=true;button.textContent="جاري إرسال التقييم...";
+ try{
+  await ensureSupabase();
+  const {error}=await supabaseClient.from("store_reviews").insert({display_name:name,rating,comment,approved:false});
+  if(error)throw error;
+  document.getElementById("maxiReviewArea").innerHTML='<h3>شكرًا على تقييمك ❤️</h3><p>وصلنا رأيك، وهيظهر على الموقع بعد مراجعته.</p>';
+ }catch(e){if(status)status.textContent="تعذر إرسال التقييم: "+(e.message||String(e));button.disabled=false;button.textContent="إرسال التقييم"}
+};
+window.maxiLoadPublicReviews=async function(){
+ try{
+  await ensureSupabase();
+  const {data,error}=await supabaseClient.from("store_reviews").select("display_name,rating,comment,created_at").eq("approved",true).order("created_at",{ascending:false}).limit(12);
+  if(error)throw error;
+  const box=document.getElementById("reviewCards");if(!box)return;
+  if(!data?.length)return;
+  box.innerHTML=data.map(r=>'<article class="review"><div class="stars">'+("★".repeat(Number(r.rating)||0))+("☆".repeat(5-(Number(r.rating)||0)))+'</div><h4>'+esc(r.display_name)+'</h4><p>'+esc(r.comment||"تجربة ممتازة مع MaxiMus.")+'</p></article>').join("");
+ }catch(e){console.warn("MaxiMus public reviews could not load:",e)}
+};
+window.maxiRenderReviews=async function(root){
+ const rows=await maxiRows("store_reviews","created_at");
+ const html=rows.map(r=>'<tr><td>'+maxiEsc(r.display_name)+'</td><td>'+("★".repeat(Number(r.rating)||0))+'</td><td>'+maxiEsc(r.comment||"—")+'</td><td>'+(r.approved?"منشور":"بانتظار المراجعة")+'</td><td>'+maxiActions([maxiButton(r.approved?"إخفاء":"نشر","maxiSetReviewApproval("+r.id+","+(!r.approved)+")"),maxiButton("حذف","maxiDeleteStoreReview("+r.id+")","maxi-secondary maxi-warning")])+'</td></tr>').join("");
+ root.innerHTML='<span class="eyebrow">CUSTOMER FEEDBACK</span><h1 class="admin-title">تقييمات المتجر</h1><p class="admin-muted">راجع تقييمات العملاء، وانشر المناسب منها على واجهة MaxiMus أو أخفِها.</p>'+maxiTable(["العميل","التقييم","التعليق","الحالة","التحكم"],html||'<tr><td colspan="5">لا توجد تقييمات حتى الآن.</td></tr>');
+};
+window.maxiSetReviewApproval=async function(id,approved){
+ const {error}=await supabaseClient.from("store_reviews").update({approved}).eq("id",id);
+ if(error){maxiError(error);return}
+ maxiRenderReviews(document.getElementById("adminContent"));maxiLoadPublicReviews();
+};
+window.maxiDeleteStoreReview=async function(id){
+ if(!confirm("تأكيد حذف التقييم؟"))return;
+ const {error}=await supabaseClient.from("store_reviews").delete().eq("id",id);
+ if(error){maxiError(error);return}
+ maxiRenderReviews(document.getElementById("adminContent"));maxiLoadPublicReviews();
+};
+window.maxiViewPaymentProof=async function(orderId){
+ const tab=window.open("about:blank","_blank");
+ try{
+  const {data:o,error}=await supabaseClient.from("orders").select("payment_proof_path").eq("id",orderId).single();
+  if(error)throw error;
+  if(!o.payment_proof_path)throw new Error("لا توجد صورة إثبات تحويل لهذا الطلب.");
+  const {data,error:signError}=await supabaseClient.storage.from("payment-proofs").createSignedUrl(o.payment_proof_path,600);
+  if(signError)throw signError;
+  if(tab)tab.location.href=data.signedUrl;else alert("اسمح بفتح نافذة جديدة لعرض الصورة.");
+ }catch(e){if(tab)tab.close();maxiError(e)}
+};
+window.maxiSetOrderPaymentStatus=async function(orderId,status){
+ if(!["pending","paid","failed"].includes(status))return;
+ const {error}=await supabaseClient.from("orders").update({payment_status:status,updated_at:new Date().toISOString()}).eq("id",orderId);
+ if(error){maxiError(error);return}
+ alert(status==="paid"?"تم تسجيل تأكيد الدفع.":status==="failed"?"تم تسجيل رفض إثبات الدفع.":"تم إرجاع حالة الدفع إلى قيد المراجعة.");
+ maxiLoadPage("payments");
+};
+const maxiOriginalRenderPayments=window.maxiRenderPayments;
+window.maxiRenderPayments=async function(root){
+ await maxiOriginalRenderPayments(root);
+ const {data,error}=await supabaseClient.from("orders").select("id,customer,total,payment_method,payment_status,payment_proof_path,created_at").not("payment_proof_path","is",null).order("created_at",{ascending:false}).limit(100);
+ if(error)throw error;
+ const rows=(data||[]).map(o=>'<tr><td>#'+o.id+'</td><td>'+maxiEsc(o.customer?.name||"—")+'<br><small>'+maxiEsc(o.customer?.phone||"")+'</small></td><td>'+maxiEsc(o.payment_method||"—")+'</td><td>'+maximosMoney(o.total)+'</td><td>'+maxiActions([maxiButton("عرض صورة التحويل","maxiViewPaymentProof("+o.id+")")])+'</td><td><select onchange="maxiSetOrderPaymentStatus('+o.id+',this.value)"><option value="pending" '+(o.payment_status==="pending"?"selected":"")+'>قيد المراجعة</option><option value="paid" '+(o.payment_status==="paid"?"selected":"")+'>تم التأكيد</option><option value="failed" '+(o.payment_status==="failed"?"selected":"")+'>مرفوض</option></select></td></tr>').join("");
+ root.insertAdjacentHTML("beforeend",'<div class="maxi-card" style="margin-top:24px"><h3>إثباتات التحويل المرسلة من العملاء</h3><p class="admin-muted">افتح الصورة وراجع التحويل من حساب المحفظة قبل تغيير حالة الدفع إلى تم التأكيد.</p>'+maxiTable(["الطلب","العميل","طريقة الدفع","المبلغ","الصورة","حالة الدفع"],rows||'<tr><td colspan="6">لا توجد صور تحويل مرفوعة حتى الآن.</td></tr>')+'</div>');
+};
+const maxiOriginalOrderDetails=window.maxiOrderDetails;
+window.maxiOrderDetails=async function(id){
+ const {data:o,error}=await supabaseClient.from("orders").select("*").eq("id",id).single();
+ if(error){maxiError(error);return}
+ const items=(o.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+maxiEsc(i.size||"—")+'</td><td>'+maxiEsc(i.color||"—")+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td></tr>').join("");
+ const proof=o.payment_proof_path?maxiButton("عرض صورة إثبات التحويل","maxiViewPaymentProof("+id+")"):'<p class="maxi-muted">لا توجد صورة إثبات تحويل مرفقة.</p>';
+ maxiOpenModal("تفاصيل الطلب #"+id,'<div class="maxi-card"><b>العميل:</b> '+maxiEsc(o.customer?.name)+'<br><b>الهاتف:</b> '+maxiEsc(o.customer?.phone)+'<br><b>العنوان:</b> '+maxiEsc(o.customer?.address)+'<br><b>الحالة:</b> '+maxiEsc(o.status)+'<br><b>الدفع:</b> '+maxiEsc(o.payment_method)+' / '+maxiEsc(o.payment_status)+'</div><div class="maxi-card">'+proof+'</div>'+maxiTable(["المنتج","المقاس","اللون","الكمية","السعر"],items)+'<p><b>الإجمالي: '+maximosMoney(o.total)+'</b></p><p class="maxi-muted">ملاحظات الإلغاء: '+maxiEsc(o.cancellation_reason||"—")+'</p>');
+};
+const maxiOriginalRenderAdmin=window.renderAdmin;
+window.renderAdmin=function(tab){
+ const side=document.querySelector(".admin-side");
+ if(side&&!side.querySelector('[data-tab="reviews"]')){
+  const b=document.createElement("button");b.className="admin-tab";b.dataset.tab="reviews";b.textContent="★ Reviews";b.onclick=()=>showAdminTab("reviews");side.appendChild(b);
+ }
+ const reviewTab=side?.querySelector('[data-tab="reviews"]');
+ if(reviewTab)reviewTab.style.display=maxiCan("store.manage")?"":"none";
+ if(tab==="reviews"){
+  if(!adminAuthenticated)return;
+  if(!maxiCan("store.manage")){alert("ليس لديك صلاحية لفتح هذا القسم.");return}
+  document.querySelectorAll(".admin-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab==="reviews"));
+  maxiRenderReviews(document.getElementById("adminContent")).catch(maxiError);
+  return;
+ }
+ return maxiOriginalRenderAdmin(tab);
+};
+window.submitCheckout=async function(event){
+ event.preventDefault();
+ if(!cart.length){alert("سلة التسوق فارغة.");return}
+ const form=event.currentTarget;
+ const values=Object.fromEntries(new FormData(form).entries());
+ values.name=[values.first_name,values.last_name].filter(Boolean).join(" ").trim();
+ values.address=[values.street_address,values.city,values.governorate,values.postal_code,values.country].filter(Boolean).join("، ");
+ const phone=String(values.phone||"").replace(/[\s()-]/g,"");
+ if(!/^\+?[0-9]{10,15}$/.test(phone)){alert("من فضلك أدخل رقم موبايل صحيح.");return}
+ const button=form.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="جاري تأكيد الطلب..."}
+ const popup=window.open("about:blank","_blank");
+ try{
+  const order=await recordOrder(cart,{...values,phone});
+  if(!order){if(popup)popup.close();return}
+  let message=makeMessage(order.items)+"\n\nالعميل: "+order.customer.name+"\nالبريد الإلكتروني: "+(order.customer.email||"غير مضاف")+"\nرقم الموبايل: "+order.customer.phone+"\nالعنوان: "+order.customer.address+"\nطريقة الشحن: "+(order.customer.shipping_method||"Standard Shipping")+"\nطريقة الدفع: "+order.customer.payment_method+"\nالشحن: "+(order.customer.shipping_fee===null?"يتم التأكيد":order.customer.shipping_fee===0?"مجاني":fmt(order.customer.shipping_fee))+"\nتم استلام طلب جديد من موقع MaxiMus.";
+  const url="https://wa.me/"+(storeSettings.whatsapp||"201030207079")+"?text="+encodeURIComponent(message);
+  if(popup)popup.location.href=url;
+  cart=[];updateCart();form.reset();closeCheckout();closeCart();
+  showMaxiThankYou(order.customer.name,url);
+ }catch(e){if(popup)popup.close();alert("تعذر إكمال الطلب: "+(e.message||String(e)))}
+ finally{if(button){button.disabled=false;button.textContent="تأكيد الطلب والمتابعة إلى واتساب"}}
+};
+setTimeout(maxiLoadPublicReviews,1800);
+</script>
 </body></html>
