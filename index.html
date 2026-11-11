@@ -1366,114 +1366,22 @@ async function maxiOrderDetails(id){
  maxiOpenModal("تفاصيل الطلب #"+id,'<div class="maxi-card"><b>العميل:</b> '+maxiEsc(o.customer?.name)+'<br><b>الهاتف:</b> '+maxiEsc(o.customer?.phone)+'<br><b>العنوان:</b> '+maxiEsc(o.customer?.address)+'<br><b>الحالة:</b> '+maxiEsc(o.status)+'<br><b>الدفع:</b> '+maxiEsc(o.payment_method)+' / '+maxiEsc(o.payment_status)+'</div>'+maxiTable(["المنتج","المقاس","اللون","الكمية","السعر"],items)+'<p><b>الإجمالي: '+maximosMoney(o.total)+'</b></p><p class="maxi-muted">ملاحظات الإلغاء: '+maxiEsc(o.cancellation_reason||"—")+'</p>');
 }
 async function maxiInvoice(id){
- const {data:o,error}=await supabaseClient.from("orders").select("*").eq("id",id).single();if(error){maxiError(error);return}
+ const {data:o,error}=await supabaseClient.from("orders").select("*").eq("id",id).single();
+ if(error){maxiError(error);return}
  let inv=await supabaseClient.from("order_invoices").select("*").eq("order_id",id).maybeSingle();
  if(inv.error){maxiError(inv.error);return}
  if(!inv.data){
   const snap={order_id:o.id,customer:o.customer,items:o.items,total:o.total,status:o.status,created_at:o.created_at,shipping_fee:o.shipping_fee||0,discount:o.discount||0,payment_method:o.payment_method||"الدفع عند الاستلام"};
   const {data,error}=await supabaseClient.from("order_invoices").insert({order_id:id,invoice_number:"MM-"+String(id).padStart(6,"0"),snapshot:snap,issued_by:adminUser?.id}).select().single();
-  if(error){maxiError(error);return}inv.data=data;
+  if(error){maxiError(error);return}
+  inv.data=data;
  }
  const s=inv.data.snapshot||{};
  const rows=(s.items||[]).map(i=>'<tr><td>'+maxiEsc(i.name)+'</td><td>'+Number(i.qty||1)+'</td><td>'+maximosMoney(i.price)+'</td><td>'+maximosMoney(Number(i.qty||1)*Number(i.price||0))+'</td></tr>').join("");
- const w=window.open("","_blank");if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
- w.document.write('<html><head><title>Invoice '+maxiEsc(inv.data.invoice_number)+'</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}
-/* MaxiMus footer redesign inspired by the supplied reference */
-.footer{display:block;background:#064e56;color:#f5f3eb;padding:54px max(5vw,24px) 22px;border:0;direction:rtl}
-.footer-main{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:1.15fr .8fr .95fr 1.1fr;gap:clamp(24px,4vw,64px);align-items:start}
-.footer-logo{display:flex!important;align-items:center;gap:13px;text-decoration:none;margin:0 0 18px!important;color:#fff!important}
-.footer-logo img{width:64px;height:64px;object-fit:contain;filter:none}
-.footer-logo>span{font-size:25px;font-weight:700;letter-spacing:2px;line-height:1.1;color:#fff}
-.footer-logo small{display:block;font-size:8px;letter-spacing:2px;margin-top:7px;font-weight:400}
-.footer-brand>p,.footer-column p{color:#d4e2df!important;font-size:12px;line-height:1.9;margin:12px 0 18px}
-.footer h4{color:#fff;font-size:13px;letter-spacing:0;margin:5px 0 21px;font-weight:700}
-.footer-column>a{display:block;color:#d4e2df;text-decoration:none;font-size:12px;margin:0 0 15px;transition:color .2s}
-.footer-column>a:hover,.footer a:hover{color:#d5bd78}
-.footer .social{display:flex;gap:12px;margin-top:23px}
-.footer .social a{display:grid;place-items:center;width:38px;height:38px;border:1px solid #ffffff38;border-radius:50%;color:#fff;margin:0}
-.footer .social a svg{width:17px;height:17px}
-.footer-contact-line{display:flex!important;align-items:center;gap:12px;color:#d4e2df!important;text-decoration:none;font-size:12px;margin:0 0 18px!important}
-.footer-contact-line small{display:block;margin-top:5px;color:#fff;font-size:12px;direction:ltr;text-align:right}
-.footer-contact-icon{width:30px;height:30px;display:grid;place-items:center;border:1px solid #ffffff55;border-radius:50%;font-size:17px;color:#d5bd78;flex:0 0 30px}
-.footer-newsletter{max-width:1320px;margin:38px auto 0;padding:25px 0 30px;background:transparent;border-top:1px solid #ffffff35;display:flex;align-items:center;justify-content:space-between;gap:24px;text-align:right}
-.footer-newsletter h2{font:700 21px "Playfair Display",serif;color:#fff;margin:0 0 7px}
-.footer-newsletter p{color:#d4e2df;font-size:12px;margin:0;line-height:1.8}
-.footer-newsletter-link{display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-width:260px;padding:13px 18px;border:1px solid #ffffff85;border-radius:30px;color:#fff;text-decoration:none;font-size:12px}
-.footer-newsletter-link span{font-size:19px;color:#d5bd78}
-.footer .copyright{max-width:1320px;margin:0 auto;border-top:1px solid #ffffff25;padding-top:19px;color:#b8cfcc;font-size:10px;display:flex;justify-content:space-between;gap:12px}
-@media(max-width:850px){.footer-main{grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 24px}.footer-brand{grid-column:1/-1}.footer-logo{justify-content:flex-start}.footer-newsletter{align-items:stretch;flex-direction:column}.footer-newsletter-link{width:100%;min-width:0}}
-@media(max-width:600px){.footer{padding:42px 22px 22px}.footer-main{grid-template-columns:1fr 1fr;gap:28px 16px}.footer-brand{grid-column:1/-1}.footer-logo img{width:58px;height:58px}.footer-logo>span{font-size:23px}.footer h4{font-size:12px;margin-bottom:16px}.footer-column>a,.footer-contact-line{font-size:11px}.footer-brand>p,.footer-column p{font-size:11px}.footer-newsletter{margin-top:30px;padding:24px 0}.footer-newsletter h2{font-size:19px}.footer-newsletter-link{font-size:11px}.footer .copyright{font-size:9px;line-height:1.8;flex-direction:column;align-items:center;text-align:center}}
-.footer-logo img{width:178px;height:100px;object-fit:contain;filter:none!important;background:transparent}.footer-logo>span{display:none!important}
-@media(max-width:600px){.footer-logo img{width:158px;height:90px}.footer-logo>span{display:none!important}}
-</style></head><body><h1>MAXIMUS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script>
-
-
-
-<div class="maxi-newsletter-overlay" id="maxiNewsletterPopup" aria-hidden="true">
- <section class="maxi-newsletter-dialog" role="dialog" aria-modal="true" aria-labelledby="maxiNewsletterPopupTitle">
-  <button class="maxi-newsletter-close" type="button" aria-label="إغلاق" onclick="closeMaxiNewsletterPopup()">×</button>
-  <p class="maxi-newsletter-kicker">MAXIMUS UPDATES</p>
-  <h2 id="maxiNewsletterPopupTitle">كن أول من يعرف</h2>
-  <p>اشترك ببريدك الإلكتروني ليصلك أحدث المنتجات والعروض وكل جديد من MaxiMus.</p>
-  <form class="maxi-newsletter-form" id="maxiNewsletterPopupForm" onsubmit="submitMaxiNewsletterPopup(event)">
-   <input id="maxiNewsletterPopupEmail" type="email" autocomplete="email" placeholder="Email address" aria-label="البريد الإلكتروني" required>
-   <button id="maxiNewsletterPopupSubmit" type="submit">اشترك الآن</button>
-  </form>
-  <p class="maxi-newsletter-note" id="maxiNewsletterPopupStatus" role="status" aria-live="polite"></p>
-  <button class="maxi-newsletter-dismiss" type="button" onclick="closeMaxiNewsletterPopup()">لا شكرًا، ربما لاحقًا</button>
- </section>
-</div>
-<script>
-(function(){
- const dismissedKey="maximusNewsletterPopupDismissedAt";
- const subscribedKey="maximusNewsletterSubscribed";
- window.closeMaxiNewsletterPopup=function(){
-  const popup=document.getElementById("maxiNewsletterPopup");
-  if(!popup)return;
-  popup.classList.remove("is-open");popup.setAttribute("aria-hidden","true");
-  try{localStorage.setItem(dismissedKey,String(Date.now()))}catch(_){}
- };
- window.submitMaxiNewsletterPopup=async function(event){
-  event.preventDefault();
-  const form=document.getElementById("maxiNewsletterPopupForm");
-  const input=document.getElementById("maxiNewsletterPopupEmail");
-  const button=document.getElementById("maxiNewsletterPopupSubmit");
-  const status=document.getElementById("maxiNewsletterPopupStatus");
-  const email=String(input.value||"").trim().toLowerCase();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){status.textContent="اكتب بريد إلكتروني صحيح.";return}
-  button.disabled=true;button.textContent="...";
-  status.textContent="جاري تسجيل اشتراكك...";
-  try{
-   await ensureSupabase();
-   const {error}=await supabaseClient.from("newsletter_subscribers").insert({email,source:"website",active:true});
-   if(error&&error.code==="23505"){
-    status.textContent="البريد الإلكتروني ده مشترك بالفعل ❤️";
-    try{localStorage.setItem(subscribedKey,"1")}catch(_){}
-    setTimeout(closeMaxiNewsletterPopup,1400);return;
-   }
-   if(error)throw error;
-   form.reset();status.textContent="تم الاشتراك بنجاح! هنوصلك بكل جديد من MaxiMus ❤️";
-   try{localStorage.setItem(subscribedKey,"1")}catch(_){}
-   setTimeout(closeMaxiNewsletterPopup,1800);
-  }catch(error){console.error("Newsletter popup signup failed:",error);status.textContent="حصلت مشكلة. حاول تاني بعد قليل."}
-  finally{button.disabled=false;button.textContent="اشترك الآن"}
- };
- document.addEventListener("keydown",function(event){if(event.key==="Escape")window.closeMaxiNewsletterPopup()});
- window.addEventListener("load",function(){
-  setTimeout(function(){
-   const popup=document.getElementById("maxiNewsletterPopup");if(!popup)return;
-   try{
-    if(localStorage.getItem(subscribedKey))return;
-    const last=Number(localStorage.getItem(dismissedKey)||0);
-    if(last&&Date.now()-last<7*24*60*60*1000)return;
-   }catch(_){}
-   popup.classList.add("is-open");popup.setAttribute("aria-hidden","false");
-  },5000);
- });
-})();
-<\/script>
-
-</body></html>');w.document.close();
+ const w=window.open("","_blank");
+ if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${maxiEsc(inv.data.invoice_number)}</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMUS</h1><p>INVOICE ${maxiEsc(inv.data.invoice_number)}</p><hr><p>${maxiEsc(s.customer?.name)} | ${maxiEsc(s.customer?.phone)}<br>${maxiEsc(s.customer?.address)}</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${rows}</table><p class="total">Total: ${maximosMoney(s.total)}</p><script>window.onload=()=>window.print()<\/script></body></html>`);
+ w.document.close();
 }
 async function maxiCreateReturn(id){
  const reason=prompt("اكتب سبب طلب المرتجع:");if(!reason)return;
