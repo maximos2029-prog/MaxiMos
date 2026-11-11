@@ -1538,7 +1538,6 @@ function maxiMenuSearch(){
  setTimeout(()=>document.getElementById("productSearch")?.focus(),350);
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
-\n
 function openMaxiContactPage(event){if(event)event.preventDefault();closeMaxiMenu?.();if(location.hash!=="#contact-page")location.hash="#contact-page";syncMaxiStandalonePages();window.scrollTo({top:0,behavior:"instant"});}
 function syncMaxiStandalonePages(){
  const isPolicy=location.hash==="#returns-policy";
