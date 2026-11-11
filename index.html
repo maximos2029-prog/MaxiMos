@@ -957,6 +957,26 @@ body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased
  .category span{font-size:16px!important;left:12px!important;right:8px!important;bottom:13px!important}
 }
 
+
+/* Responsive hero contrast and category grid for compact tablets/large phones */
+@media(max-width:900px){
+ .hero{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr!important;min-height:560px!important;height:560px!important;position:relative!important;background:#20251f!important;overflow:hidden!important}
+ .hero-image{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;background-position:center 32%!important}
+ .hero:after{content:"";position:absolute!important;inset:0!important;background:linear-gradient(0deg,rgba(17,23,18,.94) 0%,rgba(17,23,18,.62) 48%,rgba(17,23,18,.10) 100%)!important;z-index:1!important;pointer-events:none!important}
+ .hero-copy{grid-column:1!important;grid-row:1!important;align-self:end!important;position:relative!important;z-index:2!important;width:100%!important;padding:42px clamp(22px,5vw,48px)!important;color:#fff!important}
+ .hero-copy .eyebrow,.hero-copy p{color:rgba(255,255,255,.86)!important}
+ .hero-copy h1{color:#fff!important;text-shadow:0 2px 18px rgba(0,0,0,.2)!important}
+ .hero-copy .btn{background:#d6b56c!important;color:#24251f!important}
+ .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+ .category{height:220px!important}
+}
+@media(max-width:600px){
+ .hero{height:540px!important;min-height:540px!important}
+ .hero-copy{padding:32px 20px 35px!important}
+ .hero-copy h1{font-size:clamp(42px,11vw,58px)!important}
+ .category{height:185px!important}
+}
+
 </style>
 <style>
 /* MaxiMus newsletter popup */
