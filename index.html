@@ -639,6 +639,23 @@ body.maxi-menu-open{overflow:hidden}
 .footer-newsletter-status{flex-basis:100%;font-size:11px;margin:8px 4px 0;color:#d9e8e4;min-height:18px}
 @media(max-width:600px){.footer-newsletter-form{width:100%;min-width:0}.footer-newsletter-form input{padding:13px 12px}.footer-newsletter-form button{padding:0 18px}}
 </style>
+<style>
+/* MaxiMus newsletter popup */
+.maxi-newsletter-overlay{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.68);backdrop-filter:blur(5px)}
+.maxi-newsletter-overlay.is-open{display:flex}
+.maxi-newsletter-dialog{position:relative;width:min(100%,460px);padding:38px 30px 30px;background:#064c50;color:#fff;border:1px solid rgba(212,184,112,.55);box-shadow:0 24px 80px #0005;text-align:center}
+.maxi-newsletter-dialog .maxi-newsletter-kicker{margin:0 0 12px;color:#d7bd7b;font:600 11px "DM Sans",sans-serif;letter-spacing:3px;text-transform:uppercase}
+.maxi-newsletter-dialog h2{margin:0 0 12px;color:#fff;font:700 27px "DM Sans",sans-serif}
+.maxi-newsletter-dialog p{margin:0 auto 22px;max-width:340px;color:#e0e9e7;font-size:14px;line-height:1.9}
+.maxi-newsletter-close{position:absolute;top:10px;left:12px;width:34px;height:34px;border:0;background:transparent;color:#fff;font-size:25px;cursor:pointer}
+.maxi-newsletter-form{display:flex;gap:8px}
+.maxi-newsletter-form input{min-width:0;flex:1;padding:13px 14px;border:1px solid #ffffff65;background:#fff;color:#142e2f;font-size:14px;outline:none}
+.maxi-newsletter-form button{padding:0 18px;border:0;background:#d7bd7b;color:#173c3d;font-weight:700;cursor:pointer}
+.maxi-newsletter-form button:disabled{opacity:.65;cursor:wait}
+.maxi-newsletter-note{min-height:22px;margin:12px 0 0!important;font-size:12px!important}
+.maxi-newsletter-dismiss{margin-top:12px;padding:7px 12px;border:0;background:transparent;color:#dce8e6;text-decoration:underline;font-size:12px;cursor:pointer}
+@media(max-width:480px){.maxi-newsletter-dialog{padding:34px 20px 24px}.maxi-newsletter-dialog h2{font-size:23px}.maxi-newsletter-form{flex-direction:column}.maxi-newsletter-form button{min-height:44px}}
+</style>
 </head>
 <body>
 <div class="announcement" id="storeAnnouncement">شحن لجميع المحافظات 🇪🇬 | اكتشف أحدث منتجات MaxiMus</div>
@@ -1390,6 +1407,71 @@ async function maxiInvoice(id){
 @media(max-width:600px){.footer-logo img{width:158px;height:90px}.footer-logo>span{display:none!important}}
 </style></head><body><h1>MAXIMUS</h1><p>INVOICE '+maxiEsc(inv.data.invoice_number)+'</p><hr><p>'+maxiEsc(s.customer?.name)+' | '+maxiEsc(s.customer?.phone)+'<br>'+maxiEsc(s.customer?.address)+'</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>'+rows+'</table><p class="total">Total: '+maximosMoney(s.total)+'</p><script>window.onload=()=>window.print()<\/script>
 
+
+
+<div class="maxi-newsletter-overlay" id="maxiNewsletterPopup" aria-hidden="true">
+ <section class="maxi-newsletter-dialog" role="dialog" aria-modal="true" aria-labelledby="maxiNewsletterPopupTitle">
+  <button class="maxi-newsletter-close" type="button" aria-label="إغلاق" onclick="closeMaxiNewsletterPopup()">×</button>
+  <p class="maxi-newsletter-kicker">MAXIMUS UPDATES</p>
+  <h2 id="maxiNewsletterPopupTitle">كن أول من يعرف</h2>
+  <p>اشترك ببريدك الإلكتروني ليصلك أحدث المنتجات والعروض وكل جديد من MaxiMus.</p>
+  <form class="maxi-newsletter-form" id="maxiNewsletterPopupForm" onsubmit="submitMaxiNewsletterPopup(event)">
+   <input id="maxiNewsletterPopupEmail" type="email" autocomplete="email" placeholder="Email address" aria-label="البريد الإلكتروني" required>
+   <button id="maxiNewsletterPopupSubmit" type="submit">اشترك الآن</button>
+  </form>
+  <p class="maxi-newsletter-note" id="maxiNewsletterPopupStatus" role="status" aria-live="polite"></p>
+  <button class="maxi-newsletter-dismiss" type="button" onclick="closeMaxiNewsletterPopup()">لا شكرًا، ربما لاحقًا</button>
+ </section>
+</div>
+<script>
+(function(){
+ const dismissedKey="maximusNewsletterPopupDismissedAt";
+ const subscribedKey="maximusNewsletterSubscribed";
+ window.closeMaxiNewsletterPopup=function(){
+  const popup=document.getElementById("maxiNewsletterPopup");
+  if(!popup)return;
+  popup.classList.remove("is-open");popup.setAttribute("aria-hidden","true");
+  try{localStorage.setItem(dismissedKey,String(Date.now()))}catch(_){}
+ };
+ window.submitMaxiNewsletterPopup=async function(event){
+  event.preventDefault();
+  const form=document.getElementById("maxiNewsletterPopupForm");
+  const input=document.getElementById("maxiNewsletterPopupEmail");
+  const button=document.getElementById("maxiNewsletterPopupSubmit");
+  const status=document.getElementById("maxiNewsletterPopupStatus");
+  const email=String(input.value||"").trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){status.textContent="اكتب بريد إلكتروني صحيح.";return}
+  button.disabled=true;button.textContent="...";
+  status.textContent="جاري تسجيل اشتراكك...";
+  try{
+   await ensureSupabase();
+   const {error}=await supabaseClient.from("newsletter_subscribers").insert({email,source:"website",active:true});
+   if(error&&error.code==="23505"){
+    status.textContent="البريد الإلكتروني ده مشترك بالفعل ❤️";
+    try{localStorage.setItem(subscribedKey,"1")}catch(_){}
+    setTimeout(closeMaxiNewsletterPopup,1400);return;
+   }
+   if(error)throw error;
+   form.reset();status.textContent="تم الاشتراك بنجاح! هنوصلك بكل جديد من MaxiMus ❤️";
+   try{localStorage.setItem(subscribedKey,"1")}catch(_){}
+   setTimeout(closeMaxiNewsletterPopup,1800);
+  }catch(error){console.error("Newsletter popup signup failed:",error);status.textContent="حصلت مشكلة. حاول تاني بعد قليل."}
+  finally{button.disabled=false;button.textContent="اشترك الآن"}
+ };
+ document.addEventListener("keydown",function(event){if(event.key==="Escape")window.closeMaxiNewsletterPopup()});
+ window.addEventListener("load",function(){
+  setTimeout(function(){
+   const popup=document.getElementById("maxiNewsletterPopup");if(!popup)return;
+   try{
+    if(localStorage.getItem(subscribedKey))return;
+    const last=Number(localStorage.getItem(dismissedKey)||0);
+    if(last&&Date.now()-last<7*24*60*60*1000)return;
+   }catch(_){}
+   popup.classList.add("is-open");popup.setAttribute("aria-hidden","false");
+  },5000);
+ });
+})();
+</script>
 
 </body></html>');w.document.close();
 }
