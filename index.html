@@ -630,6 +630,7 @@ body.maxi-menu-open{overflow:hidden}
 .maxi-contact-note{font-size:11px;color:#888;line-height:1.8;margin:2px 0 0;text-align:right}
 @media(max-width:700px){.maxi-contact-wrap{padding:34px 18px 50px;min-height:560px}.maxi-contact-wrap h1{font-size:23px}.maxi-contact-lead{font-size:12px}.maxi-contact-form{width:100%}.maxi-contact-form input{height:43px}.maxi-contact-form textarea{min-height:140px}}
 
+.footer-contact-heading{display:block;width:max-content;max-width:100%;color:#fff!important;text-decoration:none;font-size:13px;font-weight:700;margin:5px 0 17px;cursor:pointer}.footer-contact-heading:hover{color:#d5bd78!important}
 </style>
 </head>
 <body>
@@ -721,14 +722,14 @@ body.maxi-menu-open{overflow:hidden}
    <a id="footerLink1" href="#home">الرئيسية</a><a id="footerLink2" href="#shop">كل المنتجات</a><a id="footerLink3" href="#categories">الأقسام</a><a id="footerLink4" href="#faq">الأسئلة الشائعة</a>
   </div>
   <div class="footer-column footer-contact">
-   <h4 id="footerContactTitle">تواصل معنا</h4>
+   <a id="footerContactTitle" class="footer-contact-heading" href="#contact-page" onclick="openMaxiContactPage(event)">تواصل معنا</a>
    <a class="footer-contact-line" href="https://wa.me/201030207079" target="_blank" rel="noopener"><span class="footer-contact-icon">◉</span><span><b id="footerContactLabel">واتساب خدمة العملاء</b><small id="footerContactPhone">01030207079</small></span></a>
    <div class="footer-contact-line"><span class="footer-contact-icon">⌖</span><span id="footerShippingText">شحن لجميع محافظات مصر</span></div>
    <p id="footerContactText">فريق MaxiMus موجود لمساعدتك في اختيار طلبك ومتابعته.</p>
   </div>
   <div class="footer-column footer-service">
    <h4 id="footerServiceTitle">خدمة العملاء والسياسات</h4>
-   <a id="footerLink5" href="#shipping-faq">الشحن والتوصيل</a><a id="footerLink6" href="#returns-policy">سياسة الاستبدال والاسترجاع</a><a id="privacyPolicyLink" href="/privacy-policy.html">سياسة الخصوصية</a><a id="termsServiceLink" href="/terms-of-service.html">شروط الخدمة</a><a id="footerLink7" href="#faq">الأسئلة الشائعة</a><a id="footerLink8" class="footer-whatsapp" href="#contact-page">تواصل معنا ↗</a>
+   <a id="footerLink5" href="#shipping-faq">الشحن والتوصيل</a><a id="footerLink6" href="#returns-policy">سياسة الاستبدال والاسترجاع</a><a id="privacyPolicyLink" href="/privacy-policy.html">سياسة الخصوصية</a><a id="termsServiceLink" href="/terms-of-service.html">شروط الخدمة</a><a id="footerLink7" href="#faq">الأسئلة الشائعة</a><a id="footerLink8" class="footer-whatsapp" href="#contact-page" onclick="openMaxiContactPage(event)">تواصل معنا ↗</a>
   </div>
  </div>
  <section class="newsletter footer-newsletter"><div><h2 id="newsletterTitle">اختار إطلالتك بثقة.</h2><p id="newsletterText">تابعنا علشان توصلك أحدث المنتجات والعروض وكل جديد من MaxiMus.</p></div><a class="footer-newsletter-link" href="https://wa.me/201030207079?text=I%27d%20like%20to%20receive%20MaxiMus%20new%20arrival%20updates" target="_blank" rel="noopener"><span id="footerNewsletterButton">اشترك في تحديثاتنا على واتساب</span> <span>↗</span></a></section>
@@ -1537,6 +1538,7 @@ function maxiMenuSearch(){
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMaxiMenu()});
 \n
+function openMaxiContactPage(event){if(event)event.preventDefault();closeMaxiMenu?.();if(location.hash!=="#contact-page")location.hash="#contact-page";syncMaxiStandalonePages();window.scrollTo({top:0,behavior:"instant"});}
 function syncMaxiStandalonePages(){
  const isPolicy=location.hash==="#returns-policy";
  const isContact=location.hash==="#contact-page";
