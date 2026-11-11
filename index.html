@@ -786,6 +786,74 @@ body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased
   .card-actions button { min-width: 0 !important; padding-inline: 4px !important; }
 }
 
+
+/* MaxiMus product card refinement */
+.product-card{
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+}
+.product-media{
+  aspect-ratio:.82!important;
+  background:#eeece5!important;
+  border:1px solid rgba(42,45,38,.07)!important;
+}
+.product-media .product-img{
+  object-position:center center!important;
+}
+.product-info{
+  padding:13px 2px 0!important;
+}
+.product-title-row{
+  align-items:baseline!important;
+  gap:7px!important;
+}
+.product-info h3{
+  font-size:clamp(11px,1.05vw,14px)!important;
+  line-height:1.5!important;
+  font-weight:600!important;
+}
+.product-price{
+  font-size:clamp(10px,.95vw,13px)!important;
+  letter-spacing:.1px!important;
+}
+.product-info .sub{
+  font-size:10px!important;
+  color:#89877e!important;
+}
+.card-swatches{
+  min-height:20px!important;
+  margin:11px 0 2px!important;
+}
+.card-swatch{
+  width:15px!important;height:15px!important;min-width:15px!important;
+}
+.card-actions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:7px!important;
+  margin-top:12px!important;
+}
+.card-actions button{
+  min-height:39px!important;
+  padding:9px 5px!important;
+  font-size:9px!important;
+  font-weight:600!important;
+  white-space:nowrap!important;
+}
+@media(max-width:700px){
+  .products{gap:20px 11px!important}
+  .product-media{aspect-ratio:.82!important}
+  .product-info{padding:10px 1px 0!important}
+  .product-info h3{font-size:10.5px!important}
+  .product-price{font-size:9.5px!important}
+  .product-info .sub{font-size:9px!important}
+  .card-swatches{gap:8px!important;margin:9px 0 1px!important}
+  .card-swatch{width:13px!important;height:13px!important;min-width:13px!important}
+  .card-actions{grid-template-columns:1fr 1fr!important;gap:5px!important;margin-top:9px!important}
+  .card-actions button{min-height:35px!important;font-size:8px!important;padding:7px 3px!important}
+}
+
 </style>
 <style>
 /* MaxiMus newsletter popup */
