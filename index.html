@@ -1164,7 +1164,7 @@ renderProducts();updateCart();loadPublicProducts();
 window.maxiIsAdmin=false;
 window.maxiUserPermissions={};
 function maxiCan(permission){
- return window.maxiIsAdmin===true || window.maxiUserPermissions?.[permission]===true;
+ return maxiIsAdmin===true || maxiUserPermissions?.[permission]===true;
 }
 window.maxiCan=maxiCan;
 
