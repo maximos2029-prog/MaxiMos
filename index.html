@@ -1212,6 +1212,7 @@ body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased
 </header>
 <main>
 <section class="hero" id="home"><div class="hero-copy"><span class="eyebrow" id="heroEyebrow">أناقة تليق بك كل يوم</span><h1 id="heroTitle">جدّد<br>ستايلك.</h1><p id="heroDescription">قطع أساسية مختارة بعناية. اكتشف تشكيلة تجمع بين الراحة والأناقة وتكمل إطلالتك في كل وقت.</p><a class="btn" id="heroButton" href="#shop">تسوّق المجموعة الجديدة <span>→</span></a></div><div class="hero-image" id="heroImage" role="img" aria-label="Menswear editorial model"></div></section>
+<div class="maxi-brand-ticker" aria-label="MaxiMus brand statement"><span>MAXIMUS / EGYPT</span><i>✳</i><span>DESIGNED FOR EVERYDAY</span><i>✳</i><span>CONFIDENCE IN EVERY DETAIL</span><i>✳</i><span>MAXIMUS / EGYPT</span></div>
 <section class="section categories" id="categories"><div class="section-head"><div><span class="eyebrow">اكتشف إطلالتك</span><h2>تسوّق حسب القسم</h2></div></div><div class="category-grid">
 <div class="category" role="button" tabindex="0" onclick="filterCategory(storeSettings.category1)" onkeydown="if(event.key===&quot;Enter&quot;)filterCategory(storeSettings.category1)"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=700&q=80"><span id="categoryName1">تيشيرتات أساسية</span></div>
 <div class="category" role="button" tabindex="0" onclick="filterCategory(storeSettings.category2)" onkeydown="if(event.key===&quot;Enter&quot;)filterCategory(storeSettings.category2)"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=700&q=80"><span id="categoryName2">كاجوال يومي</span></div>
@@ -2970,6 +2971,162 @@ setTimeout(maxiLoadPublicReviews,1800);
     gap:16px!important;
   }
 }
+
+/* MAXIMUS HOMEPAGE ART DIRECTION — full editorial rebuild */
+:root{--paper:#f7f5ef;--cream:#e9e5dc;--ink:#20241f;--olive:#344234;--gold:#c3a466;--line:#dcd7cc}
+body{background:var(--paper)!important;color:var(--ink)!important}
+.announcement{background:#202720!important;color:#eee9dd!important;padding:9px 12px!important;font-size:9px!important;letter-spacing:1.8px!important}
+.header{height:92px!important;padding:0 clamp(16px,5.4vw,88px)!important;background:#f8f7f2!important;border-bottom:1px solid #dedbd2!important;box-shadow:none!important}
+.header .brand-home .brand-mark{width:43px!important;height:43px!important;object-fit:contain!important}
+.header .brandname{font-size:17px!important;letter-spacing:3.4px!important}
+.header .brandname small{font-size:7px!important;letter-spacing:2.8px!important}
+.header .nav{gap:30px!important}
+.header .nav a{font-size:10px!important;letter-spacing:1.1px!important;text-transform:uppercase!important}
+.header .icon-btn{width:39px!important;height:39px!important;border:1px solid #dedbd2!important;border-radius:50%!important;font-size:17px!important}
+.header .admin-open{font-size:9px!important;letter-spacing:.7px!important;padding:10px 14px!important;border-color:#cfc8b9!important}
+#home.hero{height:min(760px,76vw)!important;min-height:590px!important;position:relative!important;display:block!important;isolation:isolate!important;background:#1b241e!important;overflow:hidden!important}
+#home #heroImage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;background-size:cover!important;background-position:center 34%!important;transform:scale(1.015)!important}
+#home.hero:before{content:""!important;position:absolute!important;inset:0!important;z-index:1!important;background:linear-gradient(90deg,rgba(15,22,16,.05) 0%,rgba(15,22,16,.16) 42%,rgba(15,22,16,.82) 100%),linear-gradient(0deg,rgba(15,22,16,.48),transparent 55%)!important;pointer-events:none!important}
+#home .hero-copy{position:absolute!important;z-index:2!important;top:50%!important;right:0!important;left:auto!important;bottom:auto!important;transform:translateY(-50%)!important;width:min(52%,720px)!important;padding:clamp(36px,6vw,92px)!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;text-align:right!important;color:#fff!important;direction:rtl!important}
+#home #heroEyebrow{font-size:10px!important;letter-spacing:2.6px!important;color:#d8bd83!important}
+#home #heroTitle{font-size:clamp(58px,8vw,112px)!important;line-height:.91!important;letter-spacing:-3.5px!important;color:#fff!important;margin:20px 0 18px!important;max-width:700px!important;text-shadow:0 4px 30px #0005!important}
+#home #heroDescription{max-width:430px!important;color:#f1eee7!important;font-size:13px!important;line-height:2!important}
+#home #heroButton{margin-top:22px!important;min-height:48px!important;padding:15px 24px!important;background:var(--gold)!important;color:#20251f!important;font-size:10px!important;letter-spacing:.8px!important}
+.maxi-brand-ticker{height:64px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:clamp(18px,4vw,58px)!important;overflow:hidden!important;white-space:nowrap!important;background:#e9e5dc!important;color:#45483f!important;font-size:9px!important;letter-spacing:2.5px!important;font-weight:700!important}
+.maxi-brand-ticker i{font-style:normal!important;color:#ae9258!important;font-size:16px!important}
+#categories.categories{padding:104px max(5vw,24px) 112px!important;background:#f7f5ef!important}
+#categories .section-head{justify-content:space-between!important;align-items:end!important;margin:0 0 34px!important;text-align:right!important}
+#categories .eyebrow{color:#9b895e!important;font-size:9px!important;letter-spacing:2.8px!important}
+#categories .section-head h2{font-family:"Playfair Display",serif!important;font-size:clamp(34px,4vw,54px)!important;letter-spacing:-1px!important;color:#242820!important;margin-top:12px!important}
+#categories .category-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+#categories .category{height:auto!important;aspect-ratio:.78!important;position:relative!important;overflow:hidden!important;background:#dedbd2!important}
+#categories .category:after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(0deg,rgba(12,17,13,.72),transparent 58%)!important;pointer-events:none!important}
+#categories .category img{width:100%!important;height:100%!important;object-fit:cover!important;filter:brightness(.92)!important;transition:transform .7s cubic-bezier(.2,.7,.2,1)!important}
+#categories .category:hover img{transform:scale(1.06)!important}
+#categories .category span{z-index:2!important;left:22px!important;right:22px!important;bottom:23px!important;font:600 20px "DM Sans",sans-serif!important;letter-spacing:.2px!important;color:#fff!important}
+.editorial-campaign{display:grid!important;grid-template-columns:1fr 1fr!important;min-height:640px!important;background:#e8e4db!important}
+.editorial-campaign-visual{min-height:640px!important;background-position:center 25%!important}
+.editorial-campaign-copy{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;padding:clamp(42px,7vw,112px)!important}
+.editorial-campaign-copy .eyebrow{font-size:9px!important;letter-spacing:3px!important;color:#9b895e!important}
+.editorial-campaign-copy h2{font:600 clamp(44px,5vw,72px)/1.15 "Playfair Display",serif!important;letter-spacing:-1.5px!important;color:#252920!important;margin:26px 0 20px!important}
+.editorial-campaign-copy h2 em{color:#7d806e!important;font-style:italic!important}
+.editorial-campaign-copy p{font-size:13px!important;line-height:2.1!important;max-width:420px!important;color:#696b61!important}
+.editorial-link{margin-top:24px!important;padding-bottom:9px!important;border-bottom:1px solid #8e8b7e!important;color:#30372d!important;font-size:11px!important;font-weight:700!important;text-decoration:none!important}
+.editorial-foot{width:100%!important;margin-top:60px!important;padding-top:16px!important;border-top:1px solid #d2cdc2!important;display:flex!important;justify-content:space-between!important;color:#888579!important;font-size:8px!important;letter-spacing:2px!important}
+#shop.shop-section{padding:112px max(5vw,24px) 120px!important;background:#f7f6f1!important}
+#shop .shop-heading{display:flex!important;align-items:end!important;justify-content:space-between!important;padding-bottom:30px!important;margin-bottom:28px!important;border-bottom:1px solid #dedbd2!important}
+#shop .shop-heading .eyebrow{font-size:9px!important;letter-spacing:2.8px!important;color:#9b895e!important}
+#shop .shop-heading h2{font:600 clamp(38px,4.8vw,62px) "Playfair Display",serif!important;letter-spacing:-1px!important;color:#242820!important;margin:12px 0!important}
+#shop .shop-intro{font-size:12px!important;line-height:2!important;color:#77786e!important;max-width:500px!important}
+#shop .text-link{font-size:10px!important;letter-spacing:.7px!important}
+#shop .shop-tools{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;margin:0 0 20px!important}
+#shop .shop-search,#shop .shop-sort{height:48px!important;border:1px solid #dedbd2!important;background:#fff!important;border-radius:0!important}
+#shop .shop-search input,#shop .shop-sort select{font-size:11px!important;color:#45483f!important}
+#shop .shop-filter-row{padding:0 0 16px!important;margin-bottom:24px!important;border-bottom:1px solid #e1ddd4!important;color:#77786e!important;font-size:10px!important}
+#shop .products{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:38px 22px!important;align-items:start!important}
+#shop .product-card{display:flex!important;flex-direction:column!important;min-width:0!important;padding:0!important;overflow:hidden!important;background:#fff!important;border:1px solid #e8e4dc!important;border-radius:0!important;box-shadow:0 5px 22px rgba(31,36,29,.045)!important;transition:transform .35s,box-shadow .35s!important}
+#shop .product-card:hover{transform:translateY(-5px)!important;box-shadow:0 14px 32px rgba(31,36,29,.1)!important}
+#shop .product-media{width:100%!important;aspect-ratio:.82!important;overflow:hidden!important;background:#eeece5!important}
+#shop .product-media .product-img{width:100%!important;height:100%!important;object-fit:cover!important;transition:transform .8s!important}
+#shop .product-card:hover .product-img-main{transform:scale(1.025)!important}
+#shop .product-info{padding:17px 17px 16px!important;background:#fff!important}
+#shop .product-title-row{display:flex!important;justify-content:space-between!important;align-items:baseline!important;gap:10px!important}
+#shop .product-info h3{font-size:13px!important;font-weight:600!important;letter-spacing:.1px!important;color:#252a23!important}
+#shop .product-price{font-size:13px!important;font-weight:700!important;color:#344234!important;white-space:nowrap!important}
+#shop .product-info .sub{font-size:10px!important;color:#929187!important;margin-top:8px!important}
+#shop .card-swatches{display:flex!important;align-items:center!important;gap:10px!important;margin:13px 0 2px!important;min-height:18px!important}
+#shop .card-swatch{width:15px!important;height:15px!important;min-width:15px!important}
+#shop .card-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;margin-top:15px!important}
+#shop .card-actions button{min-width:0!important;min-height:43px!important;padding:10px 8px!important;font-size:9px!important;letter-spacing:.2px!important;border-radius:0!important}
+#shop .card-actions .view{background:#344234!important;color:#fff!important}
+#shop .card-actions .add{background:#fff!important;color:#344234!important;border:1px solid #d8d5cb!important}
+#shop .product-card .tag,#shop .product-card .card-quick-view{border-radius:0!important}
+.faq{background:#eeece5!important;padding:92px max(5vw,24px)!important}
+.faq .section-head h2,.review-block .section-head h2{font:600 clamp(34px,4vw,48px) "Playfair Display",serif!important}
+.faq-list{max-width:920px!important}
+.faq-item{background:#f9f8f4!important;border:1px solid #e2ded4!important;margin:10px 0!important}
+.faq-q{padding:21px 22px!important;font-size:12px!important}
+.review-block{background:#202720!important;color:#f8f5ed!important;padding:82px max(5vw,24px)!important}
+.review-block .eyebrow{color:#c5a96e!important}
+.review-block .section-head h2{color:#f8f5ed!important}
+.review{background:#2b342d!important;border:1px solid #3b453c!important;color:#f8f5ed!important}
+.review p{color:#d1d0c6!important}
+.feature-strip{padding:0 max(5vw,24px) 85px!important;background:#f7f5ef!important}
+.feature{background:transparent!important;border-top:1px solid #dedbd2!important;padding:28px 15px!important}
+.feature .ico{color:#b2965b!important}
+.footer{background:#202720!important;color:#f7f4ec!important;border-top:0!important;padding:58px max(5vw,24px) 28px!important}
+.footer h4{color:#f7f4ec!important}
+.footer a,.footer p{color:#c7c7bd!important}
+.copyright{border-color:#41483f!important;color:#a6a79e!important}
+@media(max-width:900px){
+ #home.hero{height:590px!important;min-height:590px!important}
+ #home .hero-copy{width:min(70%,640px)!important;padding:34px!important}
+ #categories.categories{padding:76px 22px 84px!important}
+ #categories .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+ #categories .category{aspect-ratio:1.25!important}
+ #shop .products{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:26px 14px!important}
+ .editorial-campaign,.editorial-campaign-visual{min-height:480px!important}
+}
+@media(max-width:600px){
+ .announcement{font-size:8px!important;letter-spacing:1px!important;padding:8px!important}
+ .header{height:70px!important;padding:0 12px!important}
+ .header .brand-home .brand-mark{width:35px!important;height:35px!important;flex-basis:35px!important}
+ .header .brandname{font-size:14px!important}
+ .header .head-actions{gap:6px!important}
+ .header .icon-btn{width:33px!important;height:33px!important;font-size:15px!important}
+ .header .admin-open{padding:7px 8px!important;font-size:8px!important}
+ #home.hero{height:590px!important;min-height:590px!important}
+ #home.hero:before{background:linear-gradient(0deg,rgba(12,18,13,.92) 0%,rgba(12,18,13,.55) 48%,rgba(12,18,13,.08) 100%)!important}
+ #home #heroImage{background-position:center 31%!important}
+ #home .hero-copy{top:auto!important;right:0!important;left:0!important;bottom:0!important;transform:none!important;width:100%!important;padding:30px 22px 46px!important;align-items:flex-start!important;text-align:right!important}
+ #home #heroEyebrow{font-size:9px!important}
+ #home #heroTitle{font-size:clamp(48px,12vw,68px)!important;letter-spacing:-1.8px!important;line-height:.98!important;margin:13px 0!important}
+ #home #heroDescription{font-size:11px!important;line-height:1.9!important;max-width:330px!important}
+ #home #heroButton{min-height:43px!important;margin-top:14px!important;padding:12px 17px!important;font-size:9px!important}
+ .maxi-brand-ticker{height:52px!important;justify-content:flex-start!important;gap:23px!important;padding:0 20px!important;font-size:8px!important;letter-spacing:1.5px!important}
+ .maxi-brand-ticker i{font-size:13px!important}
+ #categories.categories{padding:58px 14px 66px!important}
+ #categories .section-head{margin-bottom:22px!important}
+ #categories .section-head h2{font-size:32px!important}
+ #categories .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ #categories .category{aspect-ratio:.92!important;height:auto!important}
+ #categories .category span{font-size:13px!important;left:11px!important;right:11px!important;bottom:13px!important}
+ .editorial-campaign{grid-template-columns:1fr!important;min-height:0!important}
+ .editorial-campaign-visual{grid-row:1!important;min-height:390px!important;background-position:center 25%!important}
+ .editorial-campaign-copy{grid-row:2!important;padding:38px 24px 34px!important}
+ .editorial-campaign-copy h2{font-size:43px!important;margin:18px 0 13px!important}
+ .editorial-campaign-copy p{font-size:11px!important}
+ .editorial-foot{margin-top:36px!important}
+ #shop.shop-section{padding:62px 14px 76px!important}
+ #shop .shop-heading{display:block!important;padding-bottom:19px!important;margin-bottom:18px!important}
+ #shop .shop-heading h2{font-size:36px!important;margin:9px 0!important}
+ #shop .shop-intro{font-size:10px!important;line-height:1.9!important}
+ #shop .shop-heading .text-link{display:inline-block!important;margin-top:13px!important}
+ #shop .shop-tools{gap:7px!important;align-items:stretch!important}
+ #shop .shop-search{height:42px!important;min-width:0!important;flex:1!important}
+ #shop .shop-sort{height:42px!important;padding:0 7px!important;gap:4px!important}
+ #shop .shop-sort select{min-width:65px!important;font-size:9px!important}
+ #shop .shop-sort span{font-size:8px!important}
+ #shop .shop-filter-row{font-size:9px!important;margin-bottom:13px!important;padding-bottom:12px!important}
+ #shop .products{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:17px 9px!important}
+ #shop .product-media{aspect-ratio:.78!important}
+ #shop .product-info{padding:10px 9px 10px!important}
+ #shop .product-info h3{font-size:10px!important;line-height:1.45!important;margin-bottom:4px!important}
+ #shop .product-price{font-size:10px!important}
+ #shop .product-info .sub{font-size:8px!important;margin-top:5px!important}
+ #shop .card-swatches{gap:7px!important;margin:9px 0 1px!important;min-height:15px!important}
+ #shop .card-swatch{width:12px!important;height:12px!important;min-width:12px!important}
+ #shop .card-actions{gap:5px!important;margin-top:9px!important}
+ #shop .card-actions button{min-height:34px!important;font-size:7.5px!important;padding:7px 3px!important}
+ .faq{padding:58px 16px!important}
+ .faq .section-head h2,.review-block .section-head h2{font-size:32px!important}
+ .faq-q{padding:16px!important;font-size:11px!important}
+ .review-block{padding:58px 16px!important}
+ .feature-strip{grid-template-columns:repeat(2,1fr)!important;padding:0 14px 54px!important;gap:8px 14px!important}
+ .feature{padding:18px 8px!important}
+ .footer{padding:40px 18px 22px!important}
+}
+
 </style>
 
 </body></html>
