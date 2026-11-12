@@ -1282,6 +1282,46 @@ html{scroll-padding-top:84px}body{background:#f7f6f2;color:#171916}.announcement
 .collection-kicker{font-size:7px;letter-spacing:1px}.collection-results .products{grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 9px}.product-card .product-media{aspect-ratio:.72!important}.product-card .product-info{padding:10px 8px!important}.product-card .product-info h3{font-size:10px!important}.product-card .product-price{font-size:10px!important}.product-card .card-quick-view{top:8px;right:8px;padding:6px 7px;font-size:7px}.product-card .tag{top:8px;left:8px;padding:5px 7px;font-size:7px}.product-card .card-actions{grid-template-columns:1fr!important;gap:5px!important;margin-top:9px!important}.product-card .card-actions button{min-height:34px!important;font-size:8px!important}
 .pdp{grid-template-columns:1fr;gap:16px}.pdp-gallery{grid-template-columns:1fr;grid-template-rows:auto auto;gap:8px}.pdp-gallery .gallery-main{grid-column:1;grid-row:1;height:112vw;min-height:390px;max-height:570px}.pdp-gallery .thumbs{grid-column:1;grid-row:2;flex-direction:row;max-height:none;overflow-x:auto}.pdp-gallery .thumbs img{width:64px;height:76px;flex:0 0 64px}.pdp-info{padding:22px 17px!important}.pdp-info h2{font-size:32px!important}.pdp-breadcrumb{padding:0 15px}.pdp-recommendations .products{grid-template-columns:repeat(2,minmax(0,1fr))}.review-block{padding:52px 17px}.footer{grid-template-columns:1fr 1fr;padding:36px 18px 22px}}
 </style>
+<style id="maximus-device-first-layout-fix">
+/* Device-first composition: avoid desktop-width layouts on touch phones/tablets */
+@media (hover:none) and (max-width:1400px){
+  #home.hero{height:clamp(430px,68vh,560px)!important;min-height:430px!important}
+  #home .hero-copy{width:min(78%,680px)!important;padding:34px!important}
+  #home #heroTitle{font-size:clamp(44px,8vw,76px)!important;line-height:1.02!important;letter-spacing:-1.8px!important}
+  #categories.categories{padding:58px 22px 64px!important}
+  #categories .section-head{margin-bottom:22px!important}
+  #categories .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  #categories .category{aspect-ratio:1.18!important}
+  #shop.shop-section{padding:56px 22px 76px!important}
+  #shop .shop-heading{padding-bottom:18px!important;margin-bottom:18px!important}
+  #shop .products{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:18px 12px!important}
+  #shop .product-media{aspect-ratio:.82!important}
+  .editorial-campaign{grid-template-columns:1fr 1fr!important;min-height:420px!important}
+  .editorial-campaign-visual{min-height:420px!important}
+}
+@media (hover:none) and (max-width:700px){
+  #home.hero{height:450px!important;min-height:450px!important}
+  #home .hero-copy{width:100%!important;padding:24px 20px 34px!important}
+  #home #heroTitle{font-size:clamp(42px,10vw,60px)!important;max-width:100%!important}
+  #categories.categories{padding:48px 14px 52px!important}
+  #categories .category-grid{gap:9px!important}
+  #categories .category{aspect-ratio:1.08!important}
+  #categories .category span{font-size:13px!important;right:10px!important;left:10px!important;bottom:12px!important}
+  #shop.shop-section{padding:42px 14px 58px!important}
+  #shop .shop-heading h2{font-size:32px!important}
+  #shop .shop-tools{gap:7px!important}
+  #shop .shop-search,#shop .shop-sort{height:42px!important}
+  #shop .products{gap:13px 8px!important}
+  #shop .product-media{aspect-ratio:.76!important}
+  #shop .product-info{padding:10px 8px!important}
+  #shop .product-info h3,#shop .product-price{font-size:10px!important}
+  .editorial-campaign{grid-template-columns:1fr!important;min-height:0!important}
+  .editorial-campaign-visual{min-height:390px!important;grid-row:1!important}
+  .editorial-campaign-copy{padding:34px 24px!important}
+  .editorial-campaign-copy h2{font-size:40px!important}
+  .editorial-foot{margin-top:35px!important}
+}
+</style>
 </head>
 <body>
 <div class="announcement" id="storeAnnouncement">شحن لجميع المحافظات 🇪🇬 | اكتشف أحدث منتجات MaxiMus</div>
