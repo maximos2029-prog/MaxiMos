@@ -1759,6 +1759,39 @@ async function maxiInvoice(id){
  if(!w){alert("اسمح بفتح النوافذ المنبثقة لطباعة الفاتورة.");return}
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${maxiEsc(inv.data.invoice_number)}</title><style>body{font:14px Arial;padding:35px;color:#222}h1{letter-spacing:4px}table{width:100%;border-collapse:collapse;margin-top:25px}td,th{border-bottom:1px solid #ddd;padding:12px;text-align:left}.total{text-align:right;font-size:20px;margin-top:25px}</style></head><body><h1>MAXIMUS</h1><p>INVOICE ${maxiEsc(inv.data.invoice_number)}</p><hr><p>${maxiEsc(s.customer?.name)} | ${maxiEsc(s.customer?.phone)}<br>${maxiEsc(s.customer?.address)}</p><table><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${rows}</table><p class="total">Total: ${maximosMoney(s.total)}</p><script>window.onload=()=>window.print()<\/script>
 
+
+/* MaxiMus responsive hero and category override — intentionally last in document */
+<style id="maximus-final-responsive-overrides">
+@media(max-width:900px){
+  #home.hero{display:flex!important;position:relative!important;align-items:flex-end!important;justify-content:flex-start!important;height:560px!important;min-height:560px!important;overflow:hidden!important;background:#1d2822!important;isolation:isolate!important}
+  #home.hero:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;background:linear-gradient(0deg,rgba(12,20,15,.94) 0%,rgba(12,20,15,.58) 52%,rgba(12,20,15,.12) 100%)!important}
+  #home #heroImage.hero-image{position:absolute!important;inset:0!important;z-index:-1!important;width:100%!important;height:100%!important;min-height:100%!important;background-position:center 32%!important;background-size:cover!important}
+  #home .hero-copy{position:relative!important;z-index:2!important;width:100%!important;max-width:100%!important;padding:35px 28px 42px!important;display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;color:#fff!important}
+  #home #heroEyebrow{color:#e2c98e!important;font-size:10px!important;letter-spacing:2px!important}
+  #home #heroTitle{color:#fff!important;font-size:clamp(42px,9vw,64px)!important;line-height:1.02!important;letter-spacing:-1.5px!important;text-shadow:0 3px 20px rgba(0,0,0,.4)!important;margin:14px 0!important}
+  #home #heroDescription{color:#fff!important;font-size:13px!important;line-height:1.8!important;max-width:420px!important;text-shadow:0 2px 12px rgba(0,0,0,.45)!important}
+  #home #heroButton{background:#c7a45c!important;color:#20251f!important;margin-top:16px!important}
+  #categories .category-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  #categories .category{height:220px!important;min-width:0!important}
+}
+@media(max-width:600px){
+  #home.hero{height:520px!important;min-height:520px!important}
+  #home .hero-copy{padding:28px 20px 34px!important}
+  #home #heroTitle{font-size:clamp(39px,10.5vw,54px)!important}
+  #home #heroDescription{font-size:12px!important;max-width:330px!important}
+  #categories.section.categories{padding:46px 14px 52px!important}
+  #categories .category-grid{gap:9px!important}
+  #categories .category{height:180px!important}
+  #categories .category span{font-size:16px!important;left:12px!important;right:10px!important;bottom:13px!important}
+}
+@media(min-width:901px){
+  #home.hero{min-height:610px!important}
+  #home .hero-copy{width:54%!important;padding:80px 7vw!important}
+  #home #heroTitle{font-size:clamp(54px,6vw,82px)!important}
+  #categories .category-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+</style>
+
 </body></html>`);
  w.document.close();
 }
