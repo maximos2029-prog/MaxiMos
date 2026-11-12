@@ -1187,6 +1187,21 @@ body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased
 }
 
 </style>
+<style id="maximus-rtl-hero-alignment">
+
+/* RTL alignment correction: flex-end maps to the physical left in RTL */
+#home.hero .hero-copy{align-items:flex-start!important;text-align:right!important;direction:rtl!important;right:0!important;left:auto!important}
+#home.hero .hero-copy>*{align-self:flex-start!important;text-align:right!important}
+#home.hero .hero-copy h1{width:100%!important;text-align:right!important}
+#home.hero .hero-copy p{width:100%!important;text-align:right!important}
+#home.hero .hero-copy .btn{align-self:flex-start!important}
+@media(max-width:600px){
+ #home.hero .hero-copy{align-items:flex-start!important;text-align:right!important}
+ #home.hero .hero-copy>*{align-self:flex-start!important;text-align:right!important}
+ #home.hero .hero-copy h1,#home.hero .hero-copy p{width:100%!important;text-align:right!important}
+}
+
+</style>
 </head>
 <body>
 <div class="announcement" id="storeAnnouncement">شحن لجميع المحافظات 🇪🇬 | اكتشف أحدث منتجات MaxiMus</div>
