@@ -2310,6 +2310,26 @@ setTimeout(maxiLoadPublicReviews,1800);
  #productModal .gallery-main{display:block!important;width:100%!important;height:auto!important;aspect-ratio:3/4!important;min-height:0!important;max-height:none!important;object-fit:cover!important}
  #productModal .pdp-info{display:block!important;width:100%!important;order:1!important}
 }
+
+/* Touch-device layout: also works when Android requests desktop-site width */
+@media (hover:none) and (pointer:coarse){
+  #home.hero{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr!important;position:relative!important;min-height:560px!important;height:560px!important;overflow:hidden!important;background:#1b241e!important}
+  #home #heroImage{position:absolute!important;inset:0!important;z-index:0!important;width:100%!important;height:100%!important;min-height:100%!important;background-size:cover!important;background-position:center 32%!important}
+  #home.hero:after{content:""!important;position:absolute!important;inset:0!important;z-index:1!important;background:linear-gradient(0deg,rgba(12,18,13,.92),rgba(12,18,13,.42) 58%,rgba(12,18,13,.08))!important;pointer-events:none!important}
+  #home .hero-copy{position:relative!important;z-index:2!important;grid-column:1!important;grid-row:1!important;align-self:end!important;justify-content:flex-end!important;width:100%!important;padding:32px 24px 38px!important;color:#fff!important}
+  #home #heroEyebrow{color:#e2c98e!important}
+  #home #heroTitle{color:#fff!important;font-size:clamp(42px,8vw,62px)!important;line-height:1.02!important;text-shadow:0 2px 16px #0008!important}
+  #home #heroDescription{color:#fff!important;font-size:13px!important;text-shadow:0 2px 12px #0008!important}
+  #home #heroButton{background:#c7a45c!important;color:#20251f!important}
+  #categories .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #productModal.show{display:block!important;position:fixed!important;inset:0!important;overflow-y:auto!important;padding:0!important}
+  #productModal .modal-box{display:block!important;width:100%!important;max-width:none!important;min-height:100vh!important;height:auto!important;margin:0!important;padding:16px 16px 34px!important;overflow:visible!important}
+  #productModal .pdp{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:16px!important;max-width:none!important;padding-top:24px!important}
+  #productModal .pdp-gallery{display:block!important;order:0!important;width:100%!important;min-width:0!important}
+  #productModal .gallery-main{display:block!important;width:100%!important;height:auto!important;aspect-ratio:4/5!important;min-height:0!important;max-height:none!important;object-fit:cover!important}
+  #productModal .pdp-info{display:block!important;order:1!important;width:100%!important;padding:10px 2px!important}
+  #productModal .pdp-recommendations .products{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
 </style>
 
 </body></html>
