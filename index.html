@@ -2362,6 +2362,59 @@ setTimeout(maxiLoadPublicReviews,1800);
   #home .hero-copy{box-sizing:border-box!important;align-self:end!important;padding:30px 24px 76px!important;margin:0!important}
   #home #heroButton{display:inline-flex!important;position:relative!important;z-index:3!important;margin:18px 0 0!important;min-height:44px!important;padding:13px 20px!important;align-self:flex-start!important;visibility:visible!important;opacity:1!important}
 }
+
+/* Editorial product cards for touch screens */
+@media (hover:none) and (pointer:coarse){
+  #shop .products{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:16px 12px!important;
+    align-items:start!important;
+  }
+  #shop .product-card{
+    display:flex!important;
+    flex-direction:column!important;
+    min-width:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    background:#fff!important;
+    border:1px solid #e8e4da!important;
+    border-radius:2px!important;
+    box-shadow:0 3px 14px rgba(35,39,31,.07)!important;
+  }
+  #shop .product-media{
+    width:100%!important;
+    aspect-ratio: .78!important;
+    overflow:hidden!important;
+    background:#eeece5!important;
+  }
+  #shop .product-media .product-img{object-fit:cover!important}
+  #shop .product-info{
+    padding:12px 10px 11px!important;
+    background:#fff!important;
+  }
+  #shop .product-title-row{align-items:flex-start!important;gap:6px!important}
+  #shop .product-info h3{font-size:11px!important;line-height:1.45!important}
+  #shop .product-price{font-size:11px!important}
+  #shop .product-info .sub{font-size:9px!important;margin-top:6px!important}
+  #shop .card-swatches{gap:8px!important;margin:10px 0 2px!important;min-height:17px!important}
+  #shop .card-swatch{width:13px!important;height:13px!important;min-width:13px!important}
+  #shop .card-quick-view{
+    opacity:1!important;transform:none!important;
+    top:9px!important;left:9px!important;
+    padding:7px 9px!important;font-size:8px!important;
+  }
+  #shop .product-card .tag{top:9px!important;right:9px!important;padding:6px 8px!important;font-size:8px!important}
+  #shop .card-actions{
+    display:flex!important;flex-direction:row!important;
+    gap:5px!important;margin-top:10px!important;
+  }
+  #shop .card-actions button{
+    min-width:0!important;min-height:36px!important;
+    padding:8px 4px!important;font-size:8px!important;
+    letter-spacing:0!important;white-space:nowrap!important;
+  }
+}
 </style>
 
 </body></html>
