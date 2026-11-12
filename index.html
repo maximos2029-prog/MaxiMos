@@ -1070,6 +1070,58 @@ body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased
  .gallery-main{height:110vw!important;min-height:0!important}
 }
 
+
+/* Final touch-device layout: also applies when Android Chrome requests the desktop site. */
+@media (hover:none) and (pointer:coarse){
+  .header{height:68px!important;padding:0 14px!important}
+  .header .nav{display:none!important}
+  .header .brand-home{position:absolute!important;left:50%!important;transform:translateX(-50%)!important}
+  .header .head-actions{gap:7px!important}
+  #home.hero{position:relative!important;display:block!important;height:clamp(500px,132vw,610px)!important;min-height:500px!important;overflow:hidden!important;background:#202720!important}
+  #home #heroImage{position:absolute!important;inset:0!important;min-height:0!important;width:100%!important;height:100%!important;background-size:cover!important;background-position:center 30%!important}
+  #home.hero:before{content:""!important;position:absolute!important;z-index:1!important;inset:0!important;background:linear-gradient(0deg,rgba(13,19,14,.94) 0%,rgba(13,19,14,.62) 43%,rgba(13,19,14,.04) 100%)!important;pointer-events:none!important}
+  #home .hero-copy{position:absolute!important;z-index:2!important;inset:auto 0 0 0!important;transform:none!important;width:100%!important;max-width:none!important;padding:30px 22px 42px!important;display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;text-align:right!important;direction:rtl!important}
+  #home #heroTitle{font-size:clamp(40px,10vw,56px)!important;line-height:1.02!important;letter-spacing:-1.5px!important;max-width:100%!important;width:100%!important;margin:12px 0!important;overflow-wrap:normal!important}
+  #home #heroDescription{max-width:360px!important;font-size:11px!important;line-height:1.9!important;margin:5px 0!important}
+  #home #heroButton{margin-top:15px!important;min-height:44px!important}
+  .maxi-brand-ticker{height:48px!important;justify-content:flex-start!important;gap:20px!important;padding:0 18px!important;font-size:8px!important}
+  #categories.categories{padding:54px 16px 62px!important}
+  #categories .section-head{margin-bottom:22px!important}
+  #categories .section-head h2{font-size:31px!important}
+  #categories .category-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  #categories .category{height:auto!important;aspect-ratio:1.08!important;min-width:0!important}
+  #categories .category span{font-size:14px!important;left:12px!important;right:12px!important;bottom:13px!important}
+  .editorial-campaign{display:flex!important;flex-direction:column!important;min-height:0!important}
+  .editorial-campaign-visual{order:0!important;width:100%!important;height:clamp(300px,88vw,420px)!important;min-height:0!important;background-position:center 25%!important}
+  .editorial-campaign-copy{order:1!important;width:100%!important;padding:38px 24px 32px!important}
+  .editorial-campaign-copy h2{font-size:clamp(38px,9vw,48px)!important;margin:16px 0 12px!important}
+  .editorial-campaign-copy p{font-size:11px!important;line-height:1.95!important}
+  .editorial-foot{margin-top:30px!important}
+  #shop.shop-section{padding:58px 15px 70px!important}
+  #shop .shop-heading{display:block!important;margin-bottom:18px!important;padding-bottom:18px!important}
+  #shop .shop-heading h2{font-size:35px!important}
+  #shop .shop-intro{font-size:10px!important}
+  #shop .shop-tools{display:flex!important;gap:7px!important;align-items:stretch!important}
+  #shop .shop-search{flex:1 1 55%!important;min-width:0!important;height:43px!important}
+  #shop .shop-sort{flex:0 1 auto!important;height:43px!important}
+  #shop .products{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px 9px!important}
+  #shop .product-card{min-width:0!important}
+  #shop .product-media{aspect-ratio:.76!important}
+  #shop .product-info{padding:10px 9px!important}
+  #shop .product-info h3{font-size:10px!important}
+  #shop .product-price{font-size:10px!important}
+  #shop .card-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important}
+  #shop .card-actions button{font-size:8px!important;min-height:36px!important;padding:7px 3px!important}
+  .feature-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0 15px 50px!important}
+  .footer{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:20px 14px!important;padding:38px 18px 22px!important}
+  .pdp{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+  .gallery-main{height:clamp(390px,112vw,560px)!important;min-height:0!important}
+  .pdp-info{padding:8px 0!important}
+  .pdp-recommendations .products{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .review-grid{grid-template-columns:1fr!important}
+  .review-cards{grid-template-columns:1fr!important}
+}
+
 </style>
 <style>
 /* MaxiMus newsletter popup */
